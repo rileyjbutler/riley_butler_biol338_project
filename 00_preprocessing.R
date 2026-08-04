@@ -22,3 +22,14 @@ gse <- gse[[1]]
 expr <- exprs(gse)
 feature <- fData(gse)
 pheno <- pData(gse)
+
+if (!"Gene Symbol" %in% colnames(feature)) {
+  stop("Gene Symbol column not found in feature data")
+}
+
+# cleaning gene symbols 
+gene_symbols <- feature$'Gene Symbol'
+gene_symbols <- ifelse(is.na(gene_symbols) | gene_symbols == "", feature$ID, gene_symbols)
+gene_symbols <- sapply(strsplit(gene_symbols, "///"), `[`, 1)
+
+# condense microarray data object to deal with duplicates and empty rows 
