@@ -1,0 +1,6 @@
+Is there an issues with data folder not ending up in the same directory as the project? Should it be predefined or project directory reset before running script? 
+
+Add package installations for the required packages (add to list throughout analysis). 
+1. dplyr 
+2. Biobase 
+3. GEOquery 

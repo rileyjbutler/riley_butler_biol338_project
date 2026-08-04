@@ -16,6 +16,9 @@ output_file <- file.path(data_dir, "processed_data.rds")
 
 # retrieve data 
 gse <- getGEO("GSE25066", GSEMatrix=TRUE)
+gse <- gse[[1]]
 
-
-
+# get data tables 
+expr <- exprs(gse)
+feature <- fData(gse)
+pheno <- pData(gse)
