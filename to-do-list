@@ -4,3 +4,8 @@ Add package installations for the required packages (add to list throughout anal
 1. dplyr 
 2. Biobase 
 3. GEOquery 
+
+Is there a standard method to check data quality for usage in WGCNA? 
+
+Check to see if samples are in the same order. 
+

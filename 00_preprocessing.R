@@ -6,6 +6,7 @@
 library(GEOquery)
 library(limma)
 library(dplyr)
+library("WGCNA")
 
 # environment set-up - make data directory and output file path
 data_dir <- "data" 
@@ -57,28 +58,37 @@ expr <- expr[, keep_samples]
 response <- response[keep_samples]
 pheno <- pheno[keep_samples, , drop=FALSE]
 
-# find gene variances and keep 3000 of the genes with highest variance
+# find gene variances and keep 10000 of the genes with highest variance
 variances <- apply(expr, 1, var)
 variances <- variances[!is.na(variances)]
 
-n_top_genes <- min(3000, length(variances))
+n_top_genes <- min(10000, length(variances))
 top_genes <- names(sort(variances, decreasing=TRUE))[seq_len(n_top_genes)]
 expr_top <- expr[top_genes, ]
 
+# construct R object with the processed data
 processed <- list(
-  expression_raw = expr_top,
+  expression_raw = t(expr_top),
   response = response,
   phenotype = pheno,
   genes = top_genes
 )
 
-hist(expr, main = "Gene Expression Data", xlab = "Expression")
-hist(expr_top, main = "Gene Expression Data", xlab = "Expression")
+saveRDS(processed, output_file)
 
+### Data Quality Control Checks ###
+
+# checking distribution of data
+hist(expr, main = "Gene Expression Data", xlab = "Expression") # before removing low-variance 
+hist(expr_top, main = "Gene Expression Data", xlab = "Expression") # after removing low-variance
+
+# densities across samples
 plotDensities(
   expr_top,
   legend = FALSE,
   main = "Expression density across samples"
 )
 
-saveRDS(processed, output_file)
+# checking for missing entries, entries with weights below a threshold and zero-variance genes
+gsg <- goodSamplesGenes(expr_top, verbose=3) 
+gsg$allOK # TRUE if all samples are 'good' 
