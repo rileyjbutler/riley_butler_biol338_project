@@ -91,4 +91,9 @@ plotDensities(
 
 # checking for missing entries, entries with weights below a threshold and zero-variance genes
 gsg <- goodSamplesGenes(expr_top, verbose=3) 
-gsg$allOK # TRUE if all samples are 'good' 
+good_samples <- gsg$allOK  
+good_samples # TRUE if all samples are 'good'
+
+# checking that the samples are in the same order for expr_top and pheno
+same_samples <- identical(rownames(t(expr_top)), rownames(pheno))
+same_samples # TRUE if the samples are in the same order for expression table and phenotype table
