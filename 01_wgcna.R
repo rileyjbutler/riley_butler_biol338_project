@@ -90,3 +90,14 @@ par(cex=0.6)
 plot(METree)
 abline(h=.25, col="red")
 
+# trait-matching 
+trait_names <-data.frame(pCR = ifelse(processed$response == "pCR", 
+                        1, 
+                        ifelse(processed$response == "RD", 0, NA)))
+
+rownames(trait_names) <- rownames(pheno)
+
+# encode traits as binary
+
+
+
