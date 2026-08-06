@@ -1,11 +1,13 @@
-Is there an issues with data folder not ending up in the same directory as the project? Should it be predefined or project directory reset before running script? 
+Is there an issues with data folder not ending up in the same directory as the project? Should it be predefined or project directory reset before running 00 script? 
 
 Add package installations for the required packages (add to list throughout analysis). 
 1. dplyr 
 2. Biobase 
 3. GEOquery 
+4. WGCNA
 
-Is there a standard method to check data quality for usage in WGCNA? 
+Is there a standard method to check data quality for usage in WGCNA? Check to see if samples are in the same order. 
+- look at WGCNA documentation and added to end of 00 
+- Maybe some documentation on what makes for high quality data for WGCNA? 
 
-Check to see if samples are in the same order. 
-
+Add initial sample outlier check. Is there clustering based on hormone receptors? 
