@@ -76,3 +76,17 @@ plotDendroAndColors(geneTree, ModuleColors, "Module",
                     dendroLabels=FALSE, hang=0.03, 
                     addGuide=TRUE, guideHange=0.05, 
                     main="Gene dendrogram and module colors")
+
+# module eigengene identification 
+MElist <- moduleEigengenes(expression, colors=ModuleColors)
+MEs <- MElist$eigengenes 
+head(MEs)
+
+# module merging 
+ME_dis <- 1-cor(MElist$eigengenes, use="complete") # calculate eigengene dissimilarity 
+METree <- hclust(as.dist(ME_dis), method="average") # clustering eigengenes 
+par(mar=c(0,4,2,0))
+par(cex=0.6)
+plot(METree)
+abline(h=.25, col="red")
+
