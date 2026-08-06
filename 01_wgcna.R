@@ -19,6 +19,15 @@ response <- factor(processed$response, levels = c("RD", "pCR"))
 genes <- processed$genes
 pheno <- processed$pheno
 
+# identifying outlier samples 
+sampleTree <- hclust(dist(expression), method="average")
+
+par(cex=0.6);
+par(mar=c(0,4,2,0))
+
+plot(sampleTree, main="sample clustering to detect outliers", sub="", xlab="", cex.lab=1.5, cex.axis=1.5, cex.main=2)
+# there appears to be no clear outlier samples
+
 # choosing soft power threshold 
 spt <- pickSoftThreshold(expression)
 
