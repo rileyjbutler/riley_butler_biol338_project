@@ -2,6 +2,7 @@
 
 # load libraries 
 library("WGCNA")
+library(tidyverse)
 
 # set-up 
 if (!dir.exists("results")) {
@@ -90,14 +91,47 @@ par(cex=0.6)
 plot(METree)
 abline(h=.25, col="red")
 
-# trait-matching 
-trait_names <-data.frame(pCR = ifelse(processed$response == "pCR", 
+# module-trait matching
+# encode pCR and RD as binary 
+
+###################################################################
+traits <-data.frame(pCR = ifelse(processed$response == "pCR", 
                         1, 
                         ifelse(processed$response == "RD", 0, NA)))
 
-rownames(trait_names) <- rownames(pheno)
+rownames(traits) <- rownames(pheno)
 
-# encode traits as binary
+# define number of genes and samples 
+nGenes <- ncol(expression) # 10000
+nSamples <- nrow(expression) # 306
 
+module_trait_corr <- cor(MEs, traits, use='p')
+module_trait_pvalue <- corPvalueStudent(module_trait_corr, nSamples)
 
+################## USING ALL VARIABLES ###############
 
+# filtering for only useful variables 
+alltraits <- pheno
+alltraits <- pheno[, -c(30:80)]
+alltraits <- alltraits[, -c(1, 3, 4:11)]
+
+# renaming and cleaning variables 
+
+# age
+alltraits <- alltraits |> mutate(characteristics_ch1.2 = as.numeric(sub("age_years:\\s*", "", characteristics_ch1.2))) |> rename(age = characteristics_ch1.2)
+
+# ER status
+alltraits <- alltraits |> mutate(characteristics_ch1.3 = case_when(characteristics_ch1.3 == "er_status_ihc: P" ~ 1,
+                                                                   characteristics_ch1.3 == "er_status_ihc: N" ~ 0,
+                                                                   characteristics_ch1.3 %in% c("er_status_ihc: I", "er_status_ihc: NA") ~ NA_real_)) |> rename(ER_status = characteristics_ch1.3)
+
+# PR status"
+
+alltraits <- alltraits |> mutate(characteristics_ch1.4 = case_when(characteristics_ch1.4 == "pr_status_ihc: P" ~ 1,
+                                                                   characteristics_ch1.4 == "pr_status_ihc: N" ~ 0,
+                                                                   characteristics_ch1.4 %in% c("pr_status_ihc: I", "pr_status_ihc: NA") ~ NA_real_)) |> rename(PR_status = characteristics_ch1.4)
+# use unique(alltraits$characteristics_ch1.4)
+
+alltraits <- alltraits |> mutate(characteristics_ch1.4 = case_when(characteristics_ch1.4 == "pr_status_ihc: P" ~ 1,
+                                                                   characteristics_ch1.4 == "pr_status_ihc: N" ~ 0,
+                                                                   characteristics_ch1.4 %in% c("pr_status_ihc: I", "pr_status_ihc: NA") ~ NA_real_)) |> rename(PR_status = characteristics_ch1.4)
