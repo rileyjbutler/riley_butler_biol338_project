@@ -66,12 +66,84 @@ n_top_genes <- min(10000, length(variances))
 top_genes <- names(sort(variances, decreasing=TRUE))[seq_len(n_top_genes)]
 expr_top <- expr[top_genes, ]
 
+# filtering for only useful variables 
+alltraits <- pheno[, -c(30:80)]
+alltraits <- alltraits[, -c(1, 3, 4:11, 19, 23, 28)]
+
+
+# renaming and cleaning variables - move to other file??? 
+
+# age
+alltraits <- alltraits |> mutate(characteristics_ch1.2 = as.numeric(sub("age_years:\\s*", "", characteristics_ch1.2))) |> rename(age = characteristics_ch1.2)
+
+# ER status
+alltraits <- alltraits |> mutate(characteristics_ch1.3 = case_when(characteristics_ch1.3 == "er_status_ihc: P" ~ 1,
+                                                                   characteristics_ch1.3 == "er_status_ihc: N" ~ 0,                                                              characteristics_ch1.3 %in% c("er_status_ihc: I", "er_status_ihc: NA") ~ NA_real_)) |> rename(ER_status = characteristics_ch1.3)
+
+# PR status
+alltraits <- alltraits |> mutate(characteristics_ch1.4 = case_when(characteristics_ch1.4 == "pr_status_ihc: P" ~ 1,
+                                                                   characteristics_ch1.4 == "pr_status_ihc: N" ~ 0,
+                                                                   characteristics_ch1.4 %in% c("pr_status_ihc: I", "pr_status_ihc: NA") ~ NA_real_)) |> rename(PR_status = characteristics_ch1.4)
+# HER2 status
+alltraits <- alltraits |> mutate(characteristics_ch1.5 = case_when(characteristics_ch1.5 == "her2_status: P" ~ 1,
+                                                                   characteristics_ch1.5 == "her2_status: N" ~ 0,
+                                                                   characteristics_ch1.5 %in% c("her2_status: I", "her2_status: NA") ~ NA_real_)) |> rename(HER2_status = characteristics_ch1.5)
+# er status
+alltraits <- alltraits |> mutate(characteristics_ch1.6 = case_when(characteristics_ch1.6 == "er_status_ihc_esr1_for indeterminate: P" ~ 1,
+                                                                   characteristics_ch1.6 == "er_status_ihc_esr1_for indeterminate: N" ~ 0)) |> rename(indeterminate_ER_status = characteristics_ch1.6)
+# clinical tumor stage 
+alltraits <- alltraits |> mutate(characteristics_ch1.7 = case_when(characteristics_ch1.7 == "clinical_t_stage: T0" ~ 0,
+                                                                   characteristics_ch1.7 == "clinical_t_stage: T1" ~ 1, 
+                                                                   characteristics_ch1.7 == "clinical_t_stage: T2" ~ 2,
+                                                                   characteristics_ch1.7 == "clinical_t_stage: T3" ~ 3, 
+                                                                   characteristics_ch1.7 == "clinical_t_stage: T4" ~ 4)) |> rename(tumor_stage = characteristics_ch1.7)
+# nodal status
+alltraits <- alltraits |> mutate(characteristics_ch1.8 = case_when(characteristics_ch1.8 == "clinical_nodal_status: N0" ~ 0,
+                                                                   characteristics_ch1.8 == "clinical_nodal_status: N1" ~ 1, 
+                                                                   characteristics_ch1.8 == "clinical_nodal_status: N2" ~ 2, 
+                                                                   characteristics_ch1.8 == "clinical_nodal_status: N3" ~ 3)) |> rename(nodal_status = characteristics_ch1.8)
+
+# grade
+alltraits <- alltraits |> mutate(characteristics_ch1.10 = case_when(characteristics_ch1.10 == "grade: 1" ~ 1,
+                                                                    characteristics_ch1.10 == "grade: 2" ~ 2, 
+                                                                    characteristics_ch1.10 == "grade: 3" ~ 3, 
+                                                                    characteristics_ch1.10 == "grade: 4=Indeterminate" ~ 4,
+                                                                    characteristics_ch1.10 == "grade: NA" ~ NA_real_)) |> rename(grade = characteristics_ch1.10)
+# RD/pCR 
+alltraits <- alltraits |> mutate(characteristics_ch1.11 = case_when(characteristics_ch1.11 == "pathologic_response_pcr_rd: RD" ~ 1,
+                                                                    characteristics_ch1.11 == "pathologic_response_pcr_rd: pCR" ~ 0)) |> rename(pathologic_response = characteristics_ch1.11)
+
+# rcb class
+alltraits <- alltraits |> mutate(characteristics_ch1.12 = case_when(characteristics_ch1.12 == "pathologic_response_rcb_class: RCB-0/I" ~ 0,
+                                                                    characteristics_ch1.12 == "pathologic_response_rcb_class: RCB-II" ~ 2, 
+                                                                    characteristics_ch1.12 == "pathologic_response_rcb_class: RCB-III" ~ 3, 
+                                                                    characteristics_ch1.12 == "pathologic_response_rcb_class: NA" ~ NA_real_)) |> rename(pathologic_response_rcb_class = characteristics_ch1.12)
+# drfs 
+alltraits <- alltraits |> mutate(characteristics_ch1.14 = as.numeric(sub("drfs_even_time_years:\\s*", "", characteristics_ch1.14))) |> rename(drfs = characteristics_ch1.14)
+
+# esr1_status 
+alltraits <- alltraits |> mutate(characteristics_ch1.15 = case_when(characteristics_ch1.15 == "esr1_status: P" ~ 1,
+                                                                    characteristics_ch1.15 == "esr1_status: N" ~ 0)) |> rename(esr1_status = characteristics_ch1.15)
+
+# erbb2_staus/HER2_status
+alltraits <- alltraits |> mutate(characteristics_ch1.16 = case_when(characteristics_ch1.16 == "erbb2_status: P" ~ 1,
+                                                                    characteristics_ch1.16 == "erbb2_status: N" ~ 0)) |> rename(erbb2_status = characteristics_ch1.16)
+# set class
+alltraits <- alltraits |> mutate(characteristics_ch1.17 = case_when(characteristics_ch1.17 == "set_class: SET-High" ~ 2,
+                                                                    characteristics_ch1.17 == "set_class: SET-Int" ~ 1, 
+                                                                    characteristics_ch1.17 == "set_class: SET-Low" ~ 0)) |> rename(set_class = characteristics_ch1.17)
+# ggi class
+alltraits <- alltraits |> mutate(characteristics_ch1.19 = case_when(characteristics_ch1.19 == "ggi_class: Low" ~ 0,
+                                                                    characteristics_ch1.19 == "ggi_class: High" ~ 1)) |> rename(ggi_class = characteristics_ch1.19)
+
+
 # construct R object with the processed data
 processed <- list(
-  expression_raw = t(expr_top),
-  response = response,
-  phenotype = pheno,
-  genes = top_genes
+  expression_raw=t(expr_top),
+  response=response,
+  phenotype=alltraits,
+  genes=top_genes,
+  metadata=pheno
 )
 
 saveRDS(processed, output_file)
