@@ -136,6 +136,8 @@ alltraits <- alltraits |> mutate(characteristics_ch1.17 = case_when(characterist
 alltraits <- alltraits |> mutate(characteristics_ch1.19 = case_when(characteristics_ch1.19 == "ggi_class: Low" ~ 0,
                                                                     characteristics_ch1.19 == "ggi_class: High" ~ 1)) |> rename(ggi_class = characteristics_ch1.19)
 
+alltraits <- drop_na(alltraits)
+
 
 # construct R object with the processed data
 processed <- list(

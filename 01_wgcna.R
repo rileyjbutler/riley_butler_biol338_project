@@ -102,17 +102,30 @@ abline(h=.25, col="red")
 # module-trait matching
 
 # matching trait samples to expression samples 
-samples <- rownames(expression)
-traitrows <- match(samples, pheno$geo_accession)
-datatraits <- pheno[traitrows, -1]
-rownames(datatraits) <- pheno[traitrows, 1]
+common <- intersect(rownames(expression), pheno$geo_accession)
+expression2 <- expression[common, , drop=FALSE]
+datatraits <- pheno[match(common, pheno$geo_accession), , drop=FALSE]
+rownames(datatraits) <- datatraits$geo_accession
+
+#samples <- rownames(expression)
+#traitrows <- match(samples, pheno$geo_accession)
+#datatraits <- pheno[traitrows, -1]
+#rownames(pheno2) <- pheno[traitrows, 1]
+
+
+# matching with samples from metadata with MEs
+common <- intersect(rownames(MEs), rownames(datatraits))
+MEs2 <- MEs[common, , drop = FALSE]
+datatraits2 <- datatraits[common, , drop = FALSE]
+identical(rownames(MEs2), rownames(datatraits2))
 
 # calculating module-trait correlation
 
-nGenes <- ncol(expression) # 10000
-nSamples <- nrow(expression) # 306
+nGenes <- ncol(expression2) # 10000
+nSamples <- nrow(expression2) # 306
 
-module_trait_corr <- WGCNA::cor(MEs, datatraits, use='p')
+traits_numeric <- datatraits2[, setdiff(names(datatraits2), "geo_accession")] # get rid of character variable
+module_trait_corr <- WGCNA::cor(MEs2, traits_numeric, use='p')
 module_trait_pvalue <- corPvalueStudent(module_trait_corr, nSamples)
 
 # forming a heatmap 
@@ -124,9 +137,9 @@ par(mar = c(6, 8.5, 3, 1))
 
 # display the correlation values within a heatmap plot
 labeledHeatmap(Matrix = module_trait_corr,
-               xLabels = names(datatraits),
-               yLabels = names(MEs),
-               ySymbols = names(MEs),
+               xLabels = names(traits_numeric),
+               yLabels = names(MEs2),
+               ySymbols = names(MEs2),
                colorLabels = FALSE,
                colors = blueWhiteRed(50),
                textMatrix = textMatrix,
@@ -143,7 +156,7 @@ queryModuleColor <- "yellow" # using yellow module
 queryModuleExpression <- expression[,which(ModuleColors==queryModuleColor)]
 
 # a heatmap of sample clustering for genes inside the yellow module based on their association with pCR (0 or 1)
-heatmap1 <- heatmap(as.matrix(queryModuleExpression), RowSideColors=c("red", "black")[as.numeric(as.factor(datatraits$pathologic_response))])
+heatmap1 <- heatmap(as.matrix(queryModuleExpression), RowSideColors=c("red", "black")[as.numeric(as.factor(datatraits2$pathologic_response))])
 
 # combining pathologic response and ER status
 
@@ -176,7 +189,7 @@ plot(thisEigenGene, thisPC1, col=c("red", "black")[as.factor(pheno$pathologic_re
 plot(thisEigenGene, thisPC1, col=c("red", "black")[as.factor(pheno$ER_status)])
 
 wgcna_results <- list(
-  eigengenes=MEs,
+  eigengenes=MEs2,
   pheno=pheno
 )
 
