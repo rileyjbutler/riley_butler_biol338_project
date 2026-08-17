@@ -81,7 +81,6 @@ plotDendroAndColors(geneTree, ModuleColors, "Module",
 # module eigengene identification 
 MElist <- moduleEigengenes(expression, colors=ModuleColors)
 MEs <- MElist$eigengenes 
-head(MEs)
 
 # module merging 
 ME_dis <- 1-cor(MElist$eigengenes, use="complete") # calculate eigengene dissimilarity 
@@ -99,7 +98,7 @@ alltraits <- pheno[, -c(30:80)]
 alltraits <- alltraits[, -c(1, 3, 4:11, 19, 23, 28)]
 
 
-# renaming and cleaning variables 
+# renaming and cleaning variables - move to other file??? 
 
 # age
 alltraits <- alltraits |> mutate(characteristics_ch1.2 = as.numeric(sub("age_years:\\s*", "", characteristics_ch1.2))) |> rename(age = characteristics_ch1.2)
@@ -171,6 +170,7 @@ datatraits <- alltraits[traitrows, -1]
 rownames(datatraits) <- alltraits[traitrows, 1]
 
 # calculating module-trait correlation
+
 nGenes <- ncol(expression) # 10000
 nSamples <- nrow(expression) # 306
 
@@ -182,6 +182,7 @@ textMatrix = paste(signif(module_trait_corr, 2), "\n(",
                    signif(module_trait_pvalue, 1), ")", sep = "");
 dim(textMatrix) = dim(module_trait_corr)
 par(mar = c(6, 8.5, 3, 1))
+
 
 # display the correlation values within a heatmap plot
 labeledHeatmap(Matrix = module_trait_corr,
@@ -195,3 +196,17 @@ labeledHeatmap(Matrix = module_trait_corr,
                cex.text = 0.4,
                zlim = c(-1,1),
                main = paste("Module-trait relationships"))
+
+
+# exploration for module eigengenes 
+
+queryModuleColor <- "yellow" # using yellow module 
+
+queryModuleExpression <- expression[,which(ModuleColors==queryModuleColor)]
+
+# a heatmap of sample clustering for genes inside the yellow module based on their association with pCR (0 or 1)
+heatmap1 <- heatmap(as.matrix(queryModuleExpression), RowSideColors=c("red", "black")[as.numeric(as.factor(datatraits$pathologic_response))])
+
+
+
+

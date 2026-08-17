@@ -13,3 +13,6 @@ Is there a standard method to check data quality for usage in WGCNA? Check to se
 Add initial sample outlier check. Is there clustering based on hormone receptors? 
 
 Diablo package?? 
+
+Re-run WGCNA pipeline with separating ER +/- samples 
+
