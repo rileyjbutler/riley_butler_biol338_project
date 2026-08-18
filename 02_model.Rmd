@@ -1,0 +1,147 @@
+---
+title: "02_model"
+author: "Riley Butler"
+date: "2026-08-18"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+This file is used for model construction. 
+
+```{r}
+# set-up 
+if (!dir.exists("results")) {
+  dir.create("results", recursive = TRUE)
+}
+
+wgcna_path <- "data/wgcna_results.rds"
+if (!file.exists(processed_path)) {
+  system("Rscript 01_wgcna.R")
+}
+```
+
+```{r}
+# load libraries 
+library(tidyverse)
+library(performance)
+```
+
+```{r}
+# load data
+data <- readRDS(wgcna_path)
+clinical_factors <- data$pheno
+eigengenes <- data$eigengenes
+
+# create dataframe
+model_data <- data.frame(clinical_factors,eigengenes)
+
+# swapping variables - maybe do this early on? 
+model_data$pathologic_response <- ifelse(model_data$pathologic_response == 0, 1, 0)
+
+```
+
+Now that the data is set-up - lets explore! 
+
+# Logistic Regression Models 
+
+These models have assumptions, including 
+1. The outcome is binary. In this case, pCR = 1 and RD = 0
+2. Linearity of log-odds. This means continuous predictors (MEs, age, etc) are linearly related to the log-odds of the outcome. 
+3. No multicolinearity, the predictors aren't strongly correlated. This is measured by VIF, with a VIF less than 10 indicating no colinearity.  
+```{r}
+
+# null model 
+m0 <- glm(pathologic_response ~ 1, data = model_data, family = binomial)
+summary(m0)
+
+# full model - eigengenes
+m1 <- glm(pathologic_response ~ MEblack + MEblue + MEbrown + MEgreen + MEgreenyellow + MEmagenta + MEpink + MEpurple + MEred + MEsalmon + MEtan + MEturquoise + MEyellow, data=model_data, family=binomial)
+summary(m1)
+
+# full model - clinical factors
+m2 <- glm(pathologic_response ~ ER_status + tumor_stage + grade + age + PR_status + nodal_status, data=model_data, family=binomial)
+summary(m2)
+
+# combined model 
+m3 <- glm(pathologic_response ~ MEyellow + ER_status, data=model_data, family=binomial(logit))
+summary(m3)
+
+# just yellow eigengene (mostly for plotting)
+m4 <- glm(pathologic_response ~ MEyellow, data=model_data, family=binomial(logit))
+summary(m4)
+
+# just ER status 
+m5 <- glm(pathologic_response ~ ER_status, data=model_data, family=binomial)
+
+```
+
+# Logistic Regression Model Plots
+```{r}
+# plots 
+p <- model_data |> ggplot(aes( 
+  x = MEyellow, 
+  y = pathologic_response, 
+  colour = pathologic_response 
+)) + 
+  geom_jitter( 
+    size = 1, alpha = 0.4, 
+    height = 0.05, width = 0.1 
+  ) + 
+  geom_function( 
+    #    data = plot_data, 
+    aes(x = MEyellow), 
+    inherit.aes = FALSE, 
+    fun = \(x) predict(m4, 
+                       type = "response", 
+                       newdata = tibble(MEyellow = x) 
+    ), 
+    linewidth = 2, colour = "#0072B2" 
+  ) + 
+  labs( 
+    x = "Team Score", 
+    y = "Status y = 1 if Win, 0 otherwise\n and modeled probabilities" 
+  ) + 
+  scale_y_continuous(breaks = c(0, 0.5, 1)) 
+p + theme(legend.position = "none") 
+
+
+```
+
+
+# Interpretations
+```{r}
+# interpret 
+predict(m5, type = "response")
+table1 <- broom::tidy(m3, exponentiate=TRUE, conf.int=TRUE)
+table1
+```
+
+# Diagnostics 
+```{r}
+# model 3 
+check_model(m3)
+
+# collinearity
+check_collinearity(m3)
+
+# model fit 
+result <- binned_residuals(m4)
+as.data.frame(result)
+plot(result, show_dots=TRUE)
+
+r2(m3)
+
+# cooks distance 
+
+# linearity 
+```
+
+
+# Model Performance
+```{r}
+# confusion matrix 
+
+# AUC
