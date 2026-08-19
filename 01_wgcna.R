@@ -20,7 +20,7 @@ if (!dir.exists(data_dir)) {
 }
 
 output_file <- file.path(data_dir, "wgcna_results.rds")
-
+output_file2 <- file.path(data_dir, "wgcna_results-spt4.rds")
 
 # retrieving processed data 
 processed <- readRDS(processed_path)
@@ -58,7 +58,7 @@ axis(side=1, at=spt$fitIndices[,1], labels=spt$fitIndices[,1])
 text(spt$fitIndices[,1], spt$fitIndices[,5], labels=spt$fitIndices[,1], col="red")
 
 # choose soft power = 3
-SoftPower <- 3 
+SoftPower <- 4 
 
 # construct adjacency matrix
 adjacency <- adjacency(expression, power=SoftPower)
@@ -99,6 +99,18 @@ par(cex=0.6)
 plot(METree)
 abline(h=.25, col="red")
 
+merge <- mergeCloseModules(expression, ModuleColors, cutHeight=0.25)
+
+mergedColors <- merge$colors
+mergedMEs = merge$newMEs
+
+# plot merged vs unmerged modules for comparison 
+plotDendroAndColors(geneTree, cbind(ModuleColors, mergedColors), 
+                    c("Original Module", "Merged Module"),
+                    dendroLabels = FALSE, hang = 0.03,
+                    addGuide = TRUE, guideHang = 0.05,
+                    main = "Gene dendrogram and module colors for original and merged modules")
+
 # module-trait matching
 
 # matching trait samples to expression samples 
@@ -114,8 +126,8 @@ rownames(datatraits) <- datatraits$geo_accession
 
 
 # matching with samples from metadata with MEs
-common <- intersect(rownames(MEs), rownames(datatraits))
-MEs2 <- MEs[common, , drop = FALSE]
+common <- intersect(rownames(mergedMEs), rownames(datatraits))
+MEs2 <- mergedMEs[common, , drop = FALSE]
 datatraits2 <- datatraits[common, , drop = FALSE]
 identical(rownames(MEs2), rownames(datatraits2))
 
@@ -194,3 +206,11 @@ wgcna_results <- list(
 )
 
 saveRDS(wgcna_results, output_file)
+
+# for spt4
+wgcna_results2 <- list(
+  eigengenes=MEs2,
+  pheno=pheno
+)
+
+saveRDS(wgcna_results2, output_file2)
