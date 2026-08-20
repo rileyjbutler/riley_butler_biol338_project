@@ -6,13 +6,13 @@ Add package installations for the required packages (add to list throughout anal
 3. GEOquery 
 4. WGCNA
 
-Is there a standard method to check data quality for usage in WGCNA? Check to see if samples are in the same order. 
+- Is there a standard method to check data quality for usage in WGCNA? Check to see if samples are in the same order. 
 - look at WGCNA documentation and added to end of 00 
 - Maybe some documentation on what makes for high quality data for WGCNA? 
 
-Add initial sample outlier check. Is there clustering based on hormone receptors? 
+- Add initial sample outlier check. Is there clustering based on hormone receptors? 
 
 Diablo package?? 
 
-Re-run WGCNA pipeline with separating ER +/- samples 
+- Re-run WGCNA pipeline with separating ER +/- samples 
 
