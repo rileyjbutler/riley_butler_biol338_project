@@ -165,7 +165,7 @@ library(caret)
 
 ```{r}
 
-x <- model_data |> select(-pathologic_response, -geo_accession)
+x <- model_data |> select(-pathologic_response)
 x <- as.matrix(x)
 y <- model_data$pathologic_response
 fit <- glmnet(x, y)
@@ -176,12 +176,19 @@ print(fit)
 
 cvfit <- cv.glmnet(x, y)
 
-plot(cvfit)
+plot(cvfit) # curve = variable. Shows the path of its coefficient against the L1-norm of the whole coefficient vector as lambda varies. 
 
 cvfit$lambda.min
 ```
 
 # Training Model (finding optimum alpha and lambda values)
+Elastic net penality controlled by alpha. 
+Alpha = 1 is lasso (and default). Picks one of the predictors and discards the others. 
+Alpha = 0 is ridge regression. Shrinks the coefficients of correlated predictors towards each other. 
+
+Lambda = tuning paramater that controls the overall strength of the penalty. 
+
+
 
 ```{r}
 
@@ -218,5 +225,7 @@ pred_prob
 
 p1 <- plot(elastic_model, main="Elastic Net Regression")
 p1
+
+
 ```
 
