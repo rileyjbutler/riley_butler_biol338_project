@@ -113,3 +113,5 @@ pROC::auc(roc_obj)
 # Kappa: 0.313 shows fair-to-moderate agreement beyond chance between predicted classes and the observed pCR/RD classes
 # Mcnemar's Test P-value: very small, showing that the model is asymmetric (the model makes one type of mistake more than the other)
 # AUC: 0.7686 
+
+

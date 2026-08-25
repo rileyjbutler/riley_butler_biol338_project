@@ -16,13 +16,20 @@ Diablo package??
 
 - Re-run WGCNA pipeline with separating ER +/- samples 
 
-Watch videos and read sources about elastic net logistic regression 
+- Watch videos and read sources about elastic net logistic regression 
 
-Implemenet elastic net logistic regression 
+- Implemenet elastic net logistic regression 
 
-Cox Regression? 
+Cox Regression? [OMIT] (not enough continuous variables)
 
 Diagnostics and Performance checks 
 
 (Then) Run on test set 
+
+------------------------------------------------------------------------
+
+Look at diagnostics for elastic-net models. 
+
+Run the model of the test set (clean test data through same pipeline, run WGCNA, predict pCR and RD class with test set - excluding pathologic_response variable for predictions)
+
 
