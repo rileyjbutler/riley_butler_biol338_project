@@ -106,3 +106,10 @@ patient_predictions$obs <- factor(patient_predictions$obs,levels = c("pCR", "RD"
 
 # make a confusion matrix with the new cutoff 
 confusionMatrix(patient_predictions$pred, patient_predictions$obs, positive = "pCR")
+
+pROC::auc(roc_obj)
+
+# these results show a sensitivity of 0.79 and specificity of 0.67 
+# Kappa: 0.313 shows fair-to-moderate agreement beyond chance between predicted classes and the observed pCR/RD classes
+# Mcnemar's Test P-value: very small, showing that the model is asymmetric (the model makes one type of mistake more than the other)
+# AUC: 0.7686 
