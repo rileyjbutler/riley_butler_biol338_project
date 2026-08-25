@@ -168,17 +168,25 @@ library(caret)
 x <- model_data |> select(-pathologic_response)
 x <- as.matrix(x)
 y <- model_data$pathologic_response
-fit <- glmnet(x, y)
+fit <- glmnet(x, y, family="binomial", label=TRUE, alpha = 0.5125)
 
 plot(fit)
 
 print(fit)
+# shows the number of nonzero coefficients, the percent deviance explained and the value of lambda
 
-cvfit <- cv.glmnet(x, y)
+coef(fit, s=0.01) # shows co-efficients used as lambda = 0.01 
 
-plot(cvfit) # curve = variable. Shows the path of its coefficient against the L1-norm of the whole coefficient vector as lambda varies. 
+# to choose a model - returns a cv.glmnet object
+cvfit <- cv.glmnet(x, y, family="binomial", type.measure="auc", alpha = 0.5125)
 
-cvfit$lambda.min
+plot(cvfit) # plots cross validation curve and upper and lower standard deviation curves along the lambda sequence (error bars). The dotted lines shows special lambda values. 
+
+cvfit$lambda.min # gives minimum mean cross-validated error
+cvfit$lambda.1se # gives the value of lambda with the most regularized model (such that the cross-validated error is withing 1 standard error of the minimum)
+
+predict(cvfit, newx = x[1:10, ], s = "lambda.min", type = "class")
+
 ```
 
 # Training Model (finding optimum alpha and lambda values)
@@ -214,18 +222,58 @@ elastic_model <- train(pathologic_response ~ .,
                        preProcess = c("center", "scale"), 
                        tuneLength = 25, 
                        trControl = control, 
-                       metric = "ROC" 
+                       metric = "ROC"
+                      
                        )
 
-elastic_model
+elastic_model$bestTune # best alpha: 0.5125 
+                       # best lambda: 0.0934 
+
+plot(elastic_model)
 
 pred_prob <- predict(elastic_model, X, type = "prob")
 pred_prob
 
+elastic_model$results
 
-p1 <- plot(elastic_model, main="Elastic Net Regression")
-p1
+pred_class <- predict(
+  elastic_model,
+  newdata = model_data
+)
 
+model_data$pathologic_response <- factor(
+  model_data$pathologic_response,
+  levels = c(1, 0),
+  labels = c("pCR", "RD")
+)
+
+confusionMatrix(
+  pred_class,
+  model_data$pathologic_response,
+  positive = "pCR"
+)
+```
+
+```{r}
+
+# looking at correlations between predictors - not super important if using elastic net
+cor_matrix <- cor(
+  x,
+  use = "pairwise.complete.obs",
+  method = "pearson"
+)
+
+round(cor_matrix, 2)
+
+library(corrplot)
+
+corrplot(
+  cor_matrix,
+  method = "color",
+  type = "upper",
+  tl.cex = 0.7
+)
 
 ```
+
 
