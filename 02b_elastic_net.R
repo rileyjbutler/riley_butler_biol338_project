@@ -65,6 +65,14 @@ elastic_model # shows the average resampled estimates of performance for differe
 # shows model performance (ROC-AUC) for different alpha and lambda values
 ggplot(elastic_model)
 
+# interpretting the plot: 
+# x-axis shows lambda values. A higher lambda results in higher regularization meaning the coefficients shrink more. 
+# the y-axis shows the ROC-AUC values. 
+# the different lines correspond to different alpha values. 
+# the results show alpha doesn't matter for low lambda values and the model performance decreases with higher lambda values. 
+# the data vavours a ridge model meaning predictors contain useful correlated information. 
+# NOTE: nearby alpha and lambda values are similar in performance meaning the model is not highly sensitive to these parameters. 
+
 # shows the coefficients used for the final model. Note that some correlated coefficients in the model are shrunk. 
 coef(elastic_model$finalModel, s = elastic_model$bestTune$lambda)
 
