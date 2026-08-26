@@ -37,7 +37,7 @@ y <- model_data$pathologic_response
 
 # using caret to choose parameters (alpha and lambda) and fit elastic net logistic regression model 
 
-control <- trainControl(method = "repeatedcv", # uses repeated cross-validation with GSE25055 training set (model_data)
+control <- caret::trainControl(method = "repeatedcv", # uses repeated cross-validation with GSE25055 training set (model_data)
                         number = 5, # number of folds 
                         repeats = 5, # number of repeated folds
                         verboseIter = TRUE, # print training log 
@@ -52,7 +52,8 @@ model_data$pathologic_response <- factor(model_data$pathologic_response, levels 
 grid <- expand.grid(alpha = seq(0, 1, by = 0.1), lambda = 10^seq(-4, 0, length.out = 50))
 
 # constructing the elastic net logistic regression model
-elastic_model <- train(pathologic_response ~ .,
+set.seed(123)
+elastic_model <- caret::train(pathologic_response ~ .,
                       data = model_data,
                       method = "glmnet", # using elastic-net logistic regression 
                       preProcess = c("center", "scale"),
@@ -72,6 +73,9 @@ ggplot(elastic_model)
 # the results show alpha doesn't matter for low lambda values and the model performance decreases with higher lambda values. 
 # the data vavours a ridge model meaning predictors contain useful correlated information. 
 # NOTE: nearby alpha and lambda values are similar in performance meaning the model is not highly sensitive to these parameters. 
+
+trellis.par.set(caretTheme())
+densityplot(elastic_model, pch = "|")
 
 # shows the coefficients used for the final model. Note that some correlated coefficients in the model are shrunk. 
 coef(elastic_model$finalModel, s = elastic_model$bestTune$lambda)
@@ -114,4 +118,34 @@ pROC::auc(roc_obj)
 # Mcnemar's Test P-value: very small, showing that the model is asymmetric (the model makes one type of mistake more than the other)
 # AUC: 0.7686 
 
+# logistic regression
+m1 <- glm(pathologic_response ~ MEblack + MEblue + MEbrown + MEgreenyellow + MEmagenta + MEpink + MEred + MEsalmon + MEturquoise + MEyellow + ER_status + tumor_stage + grade + age + PR_status + nodal_status, data=model_data, family=binomial)
 
+summary(m1)
+
+# check collinearity shows the full model does not have any predictors with VIF >= 10
+check_collinearity(m1)
+
+logistic_model <- caret::train(pathologic_response ~ .,
+                              data = model_data,
+                              method = "glm", # using elastic-net logistic regression 
+                              family=binomial,
+                              metric = "ROC", # use ROC as performance measure 
+                              trControl = control)
+
+coef(logistic_model$finalModel)
+summary(logistic_model$finalModel)
+
+pred_probs <- predict(logistic_model, newdata = model_data, type="prob")
+pred_probs
+
+# averaging predictions over k-folds
+patient_predictions2 <- logistic_model$pred |> group_by(rowIndex) |> summarise(obs = first(obs), pCR_prob = mean(pCR), .groups = "drop")
+
+# takes actual outcome for each patient and the models predicted probability, calculates how sensitivity and specificity changes across different cutoffs
+roc_obj <- roc(response = patient_predictions2$obs, predictor = patient_predictions2$pCR_prob, levels = c("RD", "pCR"), direction = "<")
+
+# plotting the ROC curve
+plot(roc_obj)
+
+confusionMatrix(logistic_model)
