@@ -27,9 +27,19 @@ Diagnostics and Performance checks
 (Then) Run on test set 
 
 ------------------------------------------------------------------------
+Week 1 Holidays 
 
 Look at diagnostics for elastic-net models. 
 
 Run the model of the test set (clean test data through same pipeline, run WGCNA, predict pCR and RD class with test set - excluding pathologic_response variable for predictions)
+- The above could probs be done with some boolean statements? Adding to pre-processing and wgcna and creating 2 separate rds objects for loading into new scripts.
+- Then adding the below for predictions and evaluation with a confusion matrix 
 
+using model for test set 
 
+remove the pathologic response column 
+predict() with test data 
+calculate ROC-AUC 
+create confusion matrix with cut-off used in GSE25055 (0.19)
+
+Pathway Enrichment 

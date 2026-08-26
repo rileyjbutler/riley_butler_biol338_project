@@ -17,7 +17,15 @@ if (!dir.exists(data_dir)) {
 output_file <- file.path(data_dir, "processed_data.rds")
 
 # retrieve data 
-gse <- getGEO("GSE25055", GSEMatrix=TRUE)
+validation <- TRUE 
+
+if (validation == TRUE) {
+  gse_num <- "GSE25066"
+} else if (validation == FALSE) {
+  gse_num <- "GSE25055"
+}
+
+gse <- getGEO(gse_num, GSEMatrix=TRUE)
 gse <- gse[[1]]
 
 # get data tables 
@@ -44,6 +52,7 @@ expr <- avereps(expr, ID=gene_symbols)
 expr <- expr[rownames(expr) != "", ]
 
 # choose and clean the response column containing pCR/RD status 
+
 response_col <- "pathologic_response_pcr_rd:ch1"
 if (!response_col %in% colnames(pheno)){
 stop("The response column was not found in the phenotype data")  
