@@ -88,8 +88,9 @@ densityplot(elastic_model, pch = "*")
 coef(elastic_model$finalModel, s = elastic_model$bestTune$lambda)
 
 # NOTE: because none of the probabilities exceed 0.5, all samples are classified as RD. 
-# To improve sensitivity, the threshold is changed using Youden 
+# to improve sensitivity, the threshold is changed using Youden 
 
+# find the average predictions and probabilities for eachs observation 
 patient_predictions <- elastic_model$pred |> group_by(rowIndex) |> summarise(obs = first(obs), pCR_prob = mean(pCR), .groups = "drop")
 
 # takes actual outcome for each patient and the models predicted probability, calculates how sensitivity and specificity changes across different cutoffs
@@ -98,7 +99,9 @@ roc_obj <- roc(response = patient_predictions$obs, predictor = patient_predictio
 # plotting the ROC curve
 plot(roc_obj)
 
-# finding the best threshold by balancing sensitivity and specificity by using Youden-selected threshold. 
+# the curve bends to the left, showing some improveement in performance (i.e. sensitivity) against the 'null' (the straight diagonal line)
+
+# finding the best threshold by balancing sensitivity and specificity  using Youden-selected threshold. 
 # which maximizes: sensitivity + specificity - 1
 best_threshold <- coords(roc_obj, x = "best", best.method = "youden", ret = c("threshold", "sensitivity", "specificity"))
 
@@ -110,7 +113,7 @@ cutoff <- as.numeric(best_threshold["threshold"])
 patient_predictions$pred <- factor(ifelse(patient_predictions$pCR_prob >= cutoff, "pCR", "RD"))
 patient_predictions$obs <- factor(patient_predictions$obs,levels = c("pCR", "RD"))
 
-roc_obj$auc
+roc_obj$auc # 0.7668
 
 # make a confusion matrix with the new cutoff 
 confusionMatrix(patient_predictions$pred, patient_predictions$obs, positive = "pCR")
@@ -138,7 +141,9 @@ check_collinearity(logistic3)
 # using caret for model comparison 
 MEpredictors <- model_data |> select(-age, -ER_status, -PR_status, -ggi_class, -HER2_status, -indeterminate_ER_status, -tumor_stage, -nodal_status, -grade, -esr1_status, -erbb2_status, -set_class)
 
+# construct logistic regression model with MEs
 
+set.seed(123)
 ME_logistic_model <- caret::train(pathologic_response ~ .,
                               data = MEpredictors,
                               method = "glm", # using logistic regression 
@@ -146,16 +151,19 @@ ME_logistic_model <- caret::train(pathologic_response ~ .,
                               metric = "ROC", # use ROC as performance measure 
                               trControl = control)
 
+# coefficients 
 coef(ME_logistic_model$finalModel)
+
+# significance of coefficients 
 summary(ME_logistic_model$finalModel)
 
-
+# average predictions over k folds to get object with the predictions, observations and probabilities 
 patient_predictions2 <- ME_logistic_model$pred |> group_by(rowIndex) |> summarise(obs = first(obs), pCR_prob = mean(pCR), .groups = "drop")
 
 # takes actual outcome for each patient and the models predicted probability, calculates how sensitivity and specificity changes across different cutoffs
 roc_obj2 <- roc(response = patient_predictions2$obs, predictor = patient_predictions2$pCR_prob, levels = c("RD", "pCR"), direction = "<")
 
-roc_obj2$auc
+roc_obj2$auc # 0.7469
 
 # plotting the ROC curve
 plot(roc_obj2)
@@ -170,4 +178,48 @@ cutoff <- as.numeric(best_threshold["threshold"])
 patient_predictions2$pred <- factor(ifelse(patient_predictions2$pCR_prob >= cutoff, "pCR", "RD"))
 patient_predictions2$obs <- factor(patient_predictions2$obs,levels = c("pCR", "RD"))
 
+# confusion matrix for logistic regression model using MEs as predictors 
 confusionMatrix(patient_predictions2$pred, patient_predictions2$obs,positive = "pCR")
+
+CF_predictors <- model_data |> select(-MEblack, -MEblue, -MEbrown, -MEgreen, -MEgreenyellow, -MEmagenta, -MEpink, -MEpurple, -MEred, -MEsalmon, -MEtan, -MEturquoise, -MEyellow)
+
+set.seed(123)
+CF_logistic_model <- caret::train(pathologic_response ~ .,
+                                  data = CF_predictors,
+                                  method = "glm", # using logistic regression 
+                                  family=binomial,
+                                  metric = "ROC", # use ROC as performance measure 
+                                  trControl = control)
+
+set.seed(123)
+full_logistic_model <- caret::train(pathologic_response ~ .,
+                                  data = model_data,
+                                  method = "glm", # using logistic regression 
+                                  family=binomial,
+                                  metric = "ROC", # use ROC as performance measure 
+                                  trControl = control)
+set.seed(123)
+SVM_model <- caret::train(pathologic_response ~ .,
+                                    data = model_data,
+                                    method = "svmLinear", # using logistic regression 
+                                    family=binomial,
+                                    metric = "ROC", # use ROC as performance measure 
+                                    trControl = control)
+
+set.seed(123)
+random_forest_model <- caret::train(pathologic_response ~ .,
+                          data = model_data,
+                          method = "ranger", # using logistic regression 
+                          metric = "ROC", # use ROC as performance measure 
+                          trControl = control)
+
+set.seed(123)
+boosted_model <- caret::train(pathologic_response ~ .,
+                                    data = model_data,
+                                    method = "xgbTree", # using logistic regression 
+                                    metric = "ROC", # use ROC as performance measure 
+                                    trControl = control)
+
+results <- resamples(list(glmnet = elastic_model, MElogistic = ME_logistic_model, CFlogistic = CF_logistic_model, fullLogistic = full_logistic_model, SVM_model=SVM_model, randomForest = random_forest_model))
+summary(results)
+bwplot(results)
