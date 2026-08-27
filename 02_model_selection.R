@@ -201,7 +201,7 @@ full_logistic_model <- caret::train(pathologic_response ~ .,
 set.seed(123)
 SVM_model <- caret::train(pathologic_response ~ .,
                                     data = model_data,
-                                    method = "svmLinear", # using logistic regression 
+                                    method = "svmLinear", # using SVM
                                     family=binomial,
                                     metric = "ROC", # use ROC as performance measure 
                                     trControl = control)
@@ -209,14 +209,14 @@ SVM_model <- caret::train(pathologic_response ~ .,
 set.seed(123)
 random_forest_model <- caret::train(pathologic_response ~ .,
                           data = model_data,
-                          method = "ranger", # using logistic regression 
+                          method = "ranger", # using random forest 
                           metric = "ROC", # use ROC as performance measure 
                           trControl = control)
 
 set.seed(123)
 boosted_model <- caret::train(pathologic_response ~ .,
                                     data = model_data,
-                                    method = "xgbTree", # using logistic regression 
+                                    method = "xgbTree", # using boosted tree  
                                     metric = "ROC", # use ROC as performance measure 
                                     trControl = control)
 

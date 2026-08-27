@@ -49,7 +49,6 @@ predict() with test data
 calculate ROC-AUC 
 create confusion matrix with cut-off used in GSE25055 (0.19)
 
-Pathway Enrichment 
 
 Compare different model types using caret?
 - logistic regression/glm (clinical, full, eigengene)
@@ -58,3 +57,12 @@ Compare different model types using caret?
 - gradient boosted trees (xgbTree)
 - linear SVM (svmLinear)
 = classification models (simple and complex including interactions) that dont require high sample numbers 
+
+
+-----------------------------------------------------------------------------------
+
+Week 2 Holidays 
+
+make a read me file 
+
+pathway enrichment
