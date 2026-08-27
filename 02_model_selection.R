@@ -30,6 +30,8 @@ model_data <- data.frame(clinical_factors,eigengenes)
 # swapping variables - maybe do this early on? 
 model_data$pathologic_response <- ifelse(model_data$pathologic_response == 0, 1, 0)
 
+# ELASTIC NET LOGISTIC REGRESSION # 
+
 # x and y set-up for models
 x <- model_data |> select(-pathologic_response)
 x <- as.matrix(x)
@@ -53,6 +55,7 @@ grid <- expand.grid(alpha = seq(0, 1, by = 0.1), lambda = 10^seq(-4, 0, length.o
 
 # constructing the elastic net logistic regression model
 set.seed(123)
+
 elastic_model <- caret::train(pathologic_response ~ .,
                       data = model_data,
                       method = "glmnet", # using elastic-net logistic regression 
@@ -75,19 +78,18 @@ ggplot(elastic_model)
 # NOTE: nearby alpha and lambda values are similar in performance meaning the model is not highly sensitive to these parameters. 
 
 trellis.par.set(caretTheme())
-densityplot(elastic_model, pch = "|")
+densityplot(elastic_model, pch = "*")
+# shows the ROC values across different samples. 
+# the most abundant ROC appears to be around ~0.8
+# the curve shows that there is some variability in performance across samples 
+
 
 # shows the coefficients used for the final model. Note that some correlated coefficients in the model are shrunk. 
 coef(elastic_model$finalModel, s = elastic_model$bestTune$lambda)
 
-# predictions for training data, using the elastic model. Show the probability of being pCR or RD. 
-pred_probs <- predict(elastic_model, newdata = model_data, type="prob")
-pred_probs
-
 # NOTE: because none of the probabilities exceed 0.5, all samples are classified as RD. 
 # To improve sensitivity, the threshold is changed using Youden 
 
-# averaging predictions over k-folds
 patient_predictions <- elastic_model$pred |> group_by(rowIndex) |> summarise(obs = first(obs), pCR_prob = mean(pCR), .groups = "drop")
 
 # takes actual outcome for each patient and the models predicted probability, calculates how sensitivity and specificity changes across different cutoffs
@@ -108,10 +110,11 @@ cutoff <- as.numeric(best_threshold["threshold"])
 patient_predictions$pred <- factor(ifelse(patient_predictions$pCR_prob >= cutoff, "pCR", "RD"))
 patient_predictions$obs <- factor(patient_predictions$obs,levels = c("pCR", "RD"))
 
+roc_obj$auc
+
 # make a confusion matrix with the new cutoff 
 confusionMatrix(patient_predictions$pred, patient_predictions$obs, positive = "pCR")
 
-pROC::auc(roc_obj)
 
 # these results show a sensitivity of 0.79 and specificity of 0.67 
 # Kappa: 0.313 shows fair-to-moderate agreement beyond chance between predicted classes and the observed pCR/RD classes
@@ -119,33 +122,52 @@ pROC::auc(roc_obj)
 # AUC: 0.7686 
 
 # logistic regression
-m1 <- glm(pathologic_response ~ MEblack + MEblue + MEbrown + MEgreenyellow + MEmagenta + MEpink + MEred + MEsalmon + MEturquoise + MEyellow + ER_status + tumor_stage + grade + age + PR_status + nodal_status, data=model_data, family=binomial)
+logistic1 <- glm(pathologic_response ~ MEblack + MEblue + MEbrown + MEgreenyellow + MEmagenta + MEpink + MEred + MEsalmon + MEturquoise + MEyellow + ER_status + tumor_stage + grade + age + PR_status + nodal_status, data=model_data, family=binomial)
+logistic2 <- glm(pathologic_response ~ MEblack + MEblue + MEbrown + MEgreenyellow + MEmagenta + MEpink + MEred + MEsalmon + MEturquoise + MEyellow, data=model_data, family=binomial)
+logistic3 <- glm(pathologic_response ~ ER_status + tumor_stage + grade + age + PR_status + nodal_status, data=model_data, family=binomial)
 
-summary(m1)
+summary(logistic1)
+summary(logistic2)
+summary(logistic3)
 
-# check collinearity shows the full model does not have any predictors with VIF >= 10
-check_collinearity(m1)
+# check collinearity shows no high collinearity (VIF >= 10)
+check_collinearity(logistic1)
+check_collinearity(logistic2)
+check_collinearity(logistic3)
 
-logistic_model <- caret::train(pathologic_response ~ .,
-                              data = model_data,
-                              method = "glm", # using elastic-net logistic regression 
+# using caret for model comparison 
+MEpredictors <- model_data |> select(-age, -ER_status, -PR_status, -ggi_class, -HER2_status, -indeterminate_ER_status, -tumor_stage, -nodal_status, -grade, -esr1_status, -erbb2_status, -set_class)
+
+
+ME_logistic_model <- caret::train(pathologic_response ~ .,
+                              data = MEpredictors,
+                              method = "glm", # using logistic regression 
                               family=binomial,
                               metric = "ROC", # use ROC as performance measure 
                               trControl = control)
 
-coef(logistic_model$finalModel)
-summary(logistic_model$finalModel)
+coef(ME_logistic_model$finalModel)
+summary(ME_logistic_model$finalModel)
 
-pred_probs <- predict(logistic_model, newdata = model_data, type="prob")
-pred_probs
 
-# averaging predictions over k-folds
-patient_predictions2 <- logistic_model$pred |> group_by(rowIndex) |> summarise(obs = first(obs), pCR_prob = mean(pCR), .groups = "drop")
+patient_predictions2 <- ME_logistic_model$pred |> group_by(rowIndex) |> summarise(obs = first(obs), pCR_prob = mean(pCR), .groups = "drop")
 
 # takes actual outcome for each patient and the models predicted probability, calculates how sensitivity and specificity changes across different cutoffs
-roc_obj <- roc(response = patient_predictions2$obs, predictor = patient_predictions2$pCR_prob, levels = c("RD", "pCR"), direction = "<")
+roc_obj2 <- roc(response = patient_predictions2$obs, predictor = patient_predictions2$pCR_prob, levels = c("RD", "pCR"), direction = "<")
+
+roc_obj2$auc
 
 # plotting the ROC curve
-plot(roc_obj)
+plot(roc_obj2)
 
-confusionMatrix(logistic_model)
+best_threshold <- coords(roc_obj2, x = "best", best.method = "youden", ret = c("threshold", "sensitivity", "specificity"))
+
+best_threshold
+
+# assign optimal cutoff value 
+cutoff <- as.numeric(best_threshold["threshold"])
+
+patient_predictions2$pred <- factor(ifelse(patient_predictions2$pCR_prob >= cutoff, "pCR", "RD"))
+patient_predictions2$obs <- factor(patient_predictions2$obs,levels = c("pCR", "RD"))
+
+confusionMatrix(patient_predictions2$pred, patient_predictions2$obs,positive = "pCR")
