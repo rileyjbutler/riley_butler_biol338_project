@@ -27,7 +27,7 @@ Diagnostics and Performance checks
 (Then) Run on test set 
 
 ------------------------------------------------------------------------
-Week 1 Holidays 
+Holidays 
 
 Re-organize model selection script and make a separate 'performance' script 
 - 'performance' rmd file should contain (1) what model was chosen and why (2) diagnostic plots for the model (3) confusion matrix (4) prediction using test set - which will require some changes to other files!
