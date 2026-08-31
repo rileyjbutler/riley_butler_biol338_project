@@ -2,6 +2,8 @@
 # The following script is adopted from hadiazarabad's repository 'Cancer-Drug-Response' from file 'prepare_gse25066.R' 
 # The input for WGCNA should have samples as rows and columns as genes with the cells showing the normalised expression values. 
 
+validation <- TRUE 
+
 # load libraries 
 library(GEOquery)
 library(limma)
@@ -14,10 +16,13 @@ if (!dir.exists(data_dir)) {
   dir.create(data_dir, recursive=TRUE)
 }
 
-output_file <- file.path(data_dir, "processed_data.rds")
+if (validation == FALSE) {
+  output_file <- file.path(data_dir, "processed_data.rds")
+} else if (validation == TRUE) {
+  output_file <- file.path(data_dir, "validation_processed_data.rds")
+}
 
-# retrieve data 
-validation <- TRUE 
+# retrieve data
 
 if (validation == TRUE) {
   gse_num <- "GSE25066"

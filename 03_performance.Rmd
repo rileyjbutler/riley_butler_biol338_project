@@ -1,0 +1,141 @@
+---
+title: "03_performance"
+author: "Riley Butler"
+date: "2026-08-30"
+output: html_document
+---
+
+This file is used to test the chosen model performance by running diagnostic tests, performance checks and predictions using the test set. 
+
+The chosen model is the elastic net logistic regression model. This model was chosen because...
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+model_path <- "data/models.rds"
+if (!file.exists(model_path)) {
+  system("Rscript 02_model_selection.R")
+}
+```
+
+```{r}
+# load libraries 
+library(tidyverse)
+library(performance)
+
+```
+
+```{r}
+# load data
+data <- readRDS(model_path)
+# test_data <- readRDS(test_path)
+```
+
+```{r}
+# shows the average resampled estimates of performance for different lambda and alpha values
+elastic_model 
+```
+
+```{r}
+# shows model performance (ROC-AUC) for different alpha and lambda values
+ggplot(elastic_model)
+```
+Interpretting the plot: 
+The x-axis shows lambda values. A higher lambda results in higher regularization meaning the coefficients shrink more. The y-axis shows the ROC-AUC values. The different lines correspond to different alpha values. The results show alpha doesn't matter for low lambda values and the model performance decreases with higher lambda values, except when alpha is 0.1 or 0. The data favours a ridge model meaning predictors contain useful correlated information. 
+
+NOTE: nearby alpha and lambda values are similar in performance meaning the model is not highly sensitive to these parameters. 
+
+```{r}
+trellis.par.set(caretTheme())
+densityplot(elastic_model, pch = "*")
+```
+This plot shows the ROC values across different samples. The most abundant ROC appears to be around ~0.8. The curve shows that there is some variability in performance across samples 
+
+```{r}
+# shows the coefficients used for the final model. Note that some correlated coefficients in the model are shrunk. 
+coef(elastic_model$finalModel, s = elastic_model$bestTune$lambda)
+```
+Because none of the probabilities exceed 0.5, all samples are classified as RD. To improve sensitivity, the threshold is changed using Youden 
+
+```{r}
+# find the average predictions and probabilities for eachs observation 
+patient_predictions <- elastic_model$pred |> group_by(rowIndex) |> summarise(obs = first(obs), pCR_prob = mean(pCR), .groups = "drop")
+
+# takes actual outcome for each patient and the models predicted probability, calculates how sensitivity and specificity changes across different cutoffs
+roc_obj <- roc(response = patient_predictions$obs, predictor = patient_predictions$pCR_prob, levels = c("RD", "pCR"), direction = "<")
+```
+
+```{r}
+# plotting the ROC curve
+plot(roc_obj)
+```
+The curve bends to the left, showing some improvement in performance (i.e. sensitivity) against the 'null' (the straight diagonal line)
+
+Finding the best threshold by balancing sensitivity and specificity  using Youden-selected threshold, which maximizes: sensitivity + specificity - 1
+
+```{r}
+best_threshold <- coords(roc_obj, x = "best", best.method = "youden", ret = c("threshold", "sensitivity", "specificity"))
+
+best_threshold
+
+# assign optimal cutoff value 
+cutoff <- as.numeric(best_threshold["threshold"])
+
+patient_predictions$pred <- factor(ifelse(patient_predictions$pCR_prob >= cutoff, "pCR", "RD"))
+patient_predictions$obs <- factor(patient_predictions$obs,levels = c("pCR", "RD"))
+
+roc_obj$auc # 0.7668
+
+# make a confusion matrix with the new cutoff 
+confusionMatrix(patient_predictions$pred, patient_predictions$obs, positive = "pCR")
+```
+These results show a sensitivity of 0.79 and specificity of 0.67 
+Kappa: 0.313 shows fair-to-moderate agreement beyond chance between predicted classes and the observed pCR/RD classes
+Mcnemar's Test P-value: very small, showing that the model is asymmetric (the model makes one type of mistake more than the other)
+AUC: 0.7686 
+
+```{r}
+# constructing regularization plot 
+regularization_plot <- plot(
+  elastic_model$finalModel,
+  xvar = "lambda",
+  label = TRUE
+)
+
+# mapping predictors to numbers to interpret the plot
+x <- model.matrix(pathologic_response ~ .,data = model_data)[, -1]
+colnames(x)
+```
+The plot shows that the important predictors are MEyellow, ggi_class, set_class, ME_black, MEbrown and MEred. Other predictors have coefficients near zero at higher lambda values. Furthermore, a lambda of 0 shows coefficients close to 0 for all predictors. 
+
+```{r}
+calibration_data <- patient_predictions |> mutate(actual = ifelse(obs == "pCR", 1, 0), bin = ntile(pCR_prob, 5)) |> group_by(bin) |> summarise(predicted = mean(pCR_prob), observed = mean(actual), n = n(), .groups = "drop")
+```
+
+Calibration Plot: shows predicted probability vs observed probability. A perfectly calibrated model falls on the diagonal line (X = Y). This plot shows whether the model overestimates or underestimates pCR across 5 bins (where bins contain samples with similar probabilities). 
+
+```{r}
+plot(
+  calibration_data$predicted,
+  calibration_data$observed,
+  xlim = c(0, 1),
+  ylim = c(0, 1),
+  xlab = "Mean predicted probability of pCR",
+  ylab = "Observed proportion with pCR",
+  pch = 19
+)
+
+abline(0, 1, lty = 2)
+
+lines(
+  calibration_data$predicted,
+  calibration_data$observed
+)
+```
+The plot shows that the model is well calibrated for predicted probability of 0.2 but over estimates pCR probability for patients with lower probabilities and underestimates for patients with lower pCR probability. This is likely good for distinguishing between pCR and RD in the case of classification. 
+
+
+Maybe run diagnostics and performance checks on simple logistic regression model/s too? 
+

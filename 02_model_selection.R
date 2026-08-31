@@ -1,3 +1,6 @@
+# This file is used to explore different model types for predicting pCR. 
+# The chosen model is the one with the best balance of specificity, sensitivity and AUC as well as the model that best aligns with the data contextually.
+
 # set-up 
 if (!dir.exists("results")) {
   dir.create("results", recursive = TRUE)
@@ -7,6 +10,8 @@ wgcna_path <- "data/wgcna_results.rds"
 if (!file.exists(wgcna_path)) {
   system("Rscript 01_wgcna.R")
 }
+
+output_file <- file.path(data_dir, "models.rds")
 
 # load libraries 
 library(tidyverse)
@@ -137,3 +142,15 @@ plot(importance)
 results <- resamples(list(glmnet = elastic_model, MElogistic = ME_logistic_model, CFlogistic = CF_logistic_model, fullLogistic = full_logistic_model, SVM_model=SVM_model, randomForest = random_forest_model))
 summary(results)
 bwplot(results)
+
+# construct R object with the models
+models <- list(
+  elastic_model=elastic_model,
+  ME_logistic_model=ME_logistic_model, 
+  CF_logistic_model=CF_logistic_model, 
+  full_logistic_model=full_logistic_model,
+  SVM_model=SVM_model, 
+  random_forest_model=random_forest_model
+)
+
+saveRDS(models, output_file)

@@ -1,4 +1,5 @@
 # This file is used to carry out a Weighted Gene Co-expression Networks Analysis using the processed data from 00_preprocessing
+validation = TRUE
 
 # load libraries 
 library("WGCNA")
@@ -9,18 +10,24 @@ library(pheatmap)
 if (!dir.exists("results")) {
   dir.create("results", recursive = TRUE)
 }
-processed_path <- "data/processed_data.rds"
-if (!file.exists(processed_path)) {
-  system("Rscript 00_preprocessing.R")
+if (validation == FALSE) {
+  processed_path <- "data/processed_data.rds"
+  output_file <- file.path(data_dir, "wgcna_results.rds")
+  if (!file.exists(processed_path)) {
+    system("Rscript 00_preprocessing.R")
+  }
+} else if (validation == TRUE) {
+  processed_path <- "data/validation_processed_data.rds"
+  output_file <- file.path(data_dir, "validation_swgcna_results.rds")
+  if (!file.exists(processed_path)) {
+    system("Rscript 00_preprocessing.R")
+  }
 }
 
 data_dir <- "data" 
 if (!dir.exists(data_dir)) { 
   dir.create(data_dir, recursive=TRUE)
 }
-
-output_file <- file.path(data_dir, "wgcna_results.rds")
-output_file2 <- file.path(data_dir, "wgcna_results-spt4.rds")
 
 # retrieving processed data 
 processed <- readRDS(processed_path)
@@ -58,7 +65,8 @@ axis(side=1, at=spt$fitIndices[,1], labels=spt$fitIndices[,1])
 text(spt$fitIndices[,1], spt$fitIndices[,5], labels=spt$fitIndices[,1], col="red")
 
 # choose soft power = 3
-SoftPower <- 4 
+# CHANGE FOR VALIDATION SET???
+SoftPower <- 3
 
 # construct adjacency matrix
 adjacency <- adjacency(expression, power=SoftPower)

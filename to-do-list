@@ -5,52 +5,32 @@ Add package installations for the required packages (add to list throughout anal
 2. Biobase 
 3. GEOquery 
 4. WGCNA
-
-- Is there a standard method to check data quality for usage in WGCNA? Check to see if samples are in the same order. 
-- look at WGCNA documentation and added to end of 00 
-- Maybe some documentation on what makes for high quality data for WGCNA? 
-
-- Add initial sample outlier check. Is there clustering based on hormone receptors? 
+...
 
 Diablo package?? 
 
-- Re-run WGCNA pipeline with separating ER +/- samples 
-
-- Watch videos and read sources about elastic net logistic regression 
-
-- Implemenet elastic net logistic regression 
-
-Cox Regression? [OMIT] (not enough continuous variables)
-
-Diagnostics and Performance checks 
-
-(Then) Run on test set 
-
-------------------------------------------------------------------------
 Holidays 
 
-Re-organize model selection script and make a separate 'performance' script 
+DONE Re-organize model selection script and make a separate 'performance' script 
 - 'performance' rmd file should contain (1) what model was chosen and why (2) diagnostic plots for the model (3) confusion matrix (4) prediction using test set - which will require some changes to other files!
 
-Look at diagnostics for elastic-net models. 
-- ROC 
-- CV-error Plot
-- Regularization Path Plot 
-- Calibration Plot 
+- ROC DONE 
+- CV-error Plot (not needed?)
+- Regularization Path Plot DONE 
+- Calibration Plot DONE 
 
 Run the model of the test set (clean test data through same pipeline, run WGCNA, predict pCR and RD class with test set - excluding pathologic_response variable for predictions)
 - The above could probs be done with some boolean statements? Adding to pre-processing and wgcna and creating 2 separate rds objects for loading into new scripts.
 - Then adding the below for predictions and evaluation with a confusion matrix 
 
 using model for test set 
-
 remove the pathologic response column 
 predict() with test data 
 calculate ROC-AUC 
 create confusion matrix with cut-off used in GSE25055 (0.19)
 
 
-Compare different model types using caret?
+DONE Compare different model types using caret?
 - logistic regression/glm (clinical, full, eigengene)
 - glm net (elastic net logistic regression)
 - random forest (ranger)
