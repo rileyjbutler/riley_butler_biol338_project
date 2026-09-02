@@ -18,7 +18,7 @@ if (validation == FALSE) {
   }
 } else if (validation == TRUE) {
   processed_path <- "data/validation_processed_data.rds"
-  output_file <- file.path(data_dir, "validation_swgcna_results.rds")
+  output_file <- file.path(data_dir, "validation_wgcna_results.rds")
   if (!file.exists(processed_path)) {
     system("Rscript 00_preprocessing.R")
   }
@@ -65,7 +65,7 @@ axis(side=1, at=spt$fitIndices[,1], labels=spt$fitIndices[,1])
 text(spt$fitIndices[,1], spt$fitIndices[,5], labels=spt$fitIndices[,1], col="red")
 
 # choose soft power = 3
-# CHANGE FOR VALIDATION SET???
+# CHANGE FOR VALIDATION SET (add if/else)
 SoftPower <- 3
 
 # construct adjacency matrix
@@ -175,8 +175,10 @@ queryModuleColor <- "yellow" # using yellow module
 
 queryModuleExpression <- expression[,which(ModuleColors==queryModuleColor)]
 
+queryModuleExpression2 <- queryModuleExpression[rownames(datatraits2), , drop = FALSE]
+
 # a heatmap of sample clustering for genes inside the yellow module based on their association with pCR (0 or 1)
-heatmap1 <- heatmap(as.matrix(queryModuleExpression), RowSideColors=c("red", "black")[as.numeric(as.factor(datatraits2$pathologic_response))])
+heatmap1 <- heatmap(as.matrix(queryModuleExpression2), RowSideColors=c("red", "black")[as.numeric(as.factor(datatraits2$pathologic_response))])
 
 # combining pathologic response and ER status
 

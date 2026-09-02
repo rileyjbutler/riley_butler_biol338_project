@@ -85,11 +85,11 @@ alltraits <- pheno
 
 # renaming and cleaning variables 
 if (validation == FALSE) {
-  alltraits <- alltraits |> select(characteristics_ch1.2, characteristics_ch1.3, characteristics_ch1.4, characteristics_ch1.5, 
+  alltraits <- alltraits |> select(geo_accession, characteristics_ch1.2, characteristics_ch1.3, characteristics_ch1.4, characteristics_ch1.5, 
                                    characteristics_ch1.6, characteristics_ch1.7, characteristics_ch1.8, characteristics_ch1.10, characteristics_ch1.11, 
                                   characteristics_ch1.14, characteristics_ch1.15, characteristics_ch1.16, characteristics_ch1.17, characteristics_ch1.19)
 } else if (validation == TRUE) {
-  alltraits <- alltraits |> select(characteristics_ch1.2, characteristics_ch1.3, characteristics_ch1.4, characteristics_ch1.5, 
+  alltraits <- alltraits |> select(geo_accession, characteristics_ch1.2, characteristics_ch1.3, characteristics_ch1.4, characteristics_ch1.5, 
                                    characteristics_ch1.6, characteristics_ch1.7, characteristics_ch1.10, characteristics_ch1.13, 
                                    characteristics_ch1.15, characteristics_ch1.17, characteristics_ch1.19)
 }
