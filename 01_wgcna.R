@@ -214,11 +214,3 @@ wgcna_results <- list(
 )
 
 saveRDS(wgcna_results, output_file)
-
-# for spt4
-wgcna_results2 <- list(
-  eigengenes=MEs2,
-  pheno=pheno
-)
-
-saveRDS(wgcna_results2, output_file2)
