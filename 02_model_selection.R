@@ -26,7 +26,7 @@ data <- readRDS(wgcna_path)
 clinical_factors <- data$pheno
 
 # dropping predictors that are too related to the outcome (pathologic response)
-clinical_factors <- clinical_factors |> select(-geo_accession, -pathologic_response_rcb_class, -drfs)
+clinical_factors <- clinical_factors |> select(-geo_accession, -pathologic_response_rcb_class, -drfs, -indeterminate_ER_status)
 eigengenes <- data$eigengenes
 
 # create dataframe
@@ -80,7 +80,7 @@ check_collinearity(logistic2)
 check_collinearity(logistic3)
 
 # using caret for model comparison 
-MEpredictors <- model_data |> select(-age, -ER_status, -PR_status, -ggi_class, -HER2_status, -indeterminate_ER_status, -tumor_stage, -nodal_status, -grade, -esr1_status, -erbb2_status, -set_class)
+MEpredictors <- model_data |> select(-age, -ER_status, -PR_status, -ggi_class, -HER2_status, -tumor_stage, -nodal_status, -grade, -esr1_status, -erbb2_status, -set_class)
 
 # construct logistic regression model with MEs
 set.seed(123)
@@ -150,7 +150,8 @@ models <- list(
   CF_logistic_model=CF_logistic_model, 
   full_logistic_model=full_logistic_model,
   SVM_model=SVM_model, 
-  random_forest_model=random_forest_model
+  random_forest_model=random_forest_model,
+  model_data = model_data
 )
 
 saveRDS(models, output_file)

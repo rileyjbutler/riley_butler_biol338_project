@@ -18,6 +18,8 @@ model_path <- "data/models.rds"
 if (!file.exists(model_path)) {
   system("Rscript 02_model_selection.R")
 }
+
+test_path <- "data/validation_wgcna_results.rds"
 ```
 
 ```{r}
@@ -30,12 +32,26 @@ library(performance)
 ```{r}
 # load data
 data <- readRDS(model_path)
-# test_data <- readRDS(test_path)
+test_data <- readRDS(test_path)
+```
+
+```{r}
+# dropping predictors that are too related to the outcome (pathologic response)
+clinical_factors <- test_data$pheno
+clinical_factors2 <- clinical_factors |> select(-geo_accession, -drfs)
+eigengenes2 <- test_data$eigengenes
+
+# create dataframe
+test_data <- data.frame(clinical_factors2,eigengenes2)
+
+# swapping variables - maybe do this early on? 
+test_data$pathologic_response <- ifelse(test_data$pathologic_response == 0, 1, 0)
 ```
 
 ```{r}
 # shows the average resampled estimates of performance for different lambda and alpha values
-elastic_model 
+elastic_model <- data$elastic_model 
+model_data <- data$model_data
 ```
 
 ```{r}
@@ -135,6 +151,12 @@ lines(
 )
 ```
 The plot shows that the model is well calibrated for predicted probability of 0.2 but over estimates pCR probability for patients with lower probabilities and underestimates for patients with lower pCR probability. This is likely good for distinguishing between pCR and RD in the case of classification. 
+
+```{r}
+
+predictions1 <- predict(elastic_model, newdata=test_data, type="prob")
+head(predictions1)
+```
 
 
 Maybe run diagnostics and performance checks on simple logistic regression model/s too? 
