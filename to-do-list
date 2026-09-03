@@ -9,7 +9,7 @@ Add package installations for the required packages (add to list throughout anal
 
 Diablo package?? 
 
-Holidays 
+Holidays Week 1
 
 DONE Re-organize model selection script and make a separate 'performance' script 
 - 'performance' rmd file should contain (1) what model was chosen and why (2) diagnostic plots for the model (3) confusion matrix (4) prediction using test set - which will require some changes to other files!
@@ -42,6 +42,27 @@ DONE Compare different model types using caret?
 -----------------------------------------------------------------------------------
 
 Week 2 Holidays 
+
+I realized that the module eigengenes in the validation set and the training set would be different in terms of their gene composition. This is because module colours are randomly assigned. 
+This doesn't work because this makes predictors heterogenous for the model. As a solution, PCA can be used to project the genes of the validation set onto the modules of the training set. This can then be used to form predictors for the model that can be used for both data sets. 
+Instead of running a WGCNA on both sets, I will do a PCA on all the (important?) modules and then project the results onto the validation set. 
+This answers 2 questions (1) Is there module preservation between the training and test set? (2) Dos the model work well with projections from the training modules? 
+
+The procedure I will use: 
+(1) Get henes defining a module in the training set
+(2) Check that the genes exist in the validation set
+(3) Take those genes from the training set 
+(4) Conduct PCA using prcomp() 
+(5) Ensure direction is correct using correlation, and corect it if not 
+(7) Project the modules onto the validation set
+(8) Use as predictors in the model to make predictions for the validation set 
+
+I will apply this using a separate script with a function that runs through all the modules from the wgcna from the training set 
+and also the processed data from the test set. Then, I will save the results as a dataframe with corresponding and load into the environment of 03 for predictions.
+
+-----------------------------------------------------------------------------------
+
+Week 7
 
 make a read me file 
 
