@@ -32,8 +32,7 @@ eigengenes <- data$eigengenes
 # create dataframe
 model_data <- data.frame(clinical_factors,eigengenes)
 
-# swapping variables - maybe do this early on? 
-model_data$pathologic_response <- ifelse(model_data$pathologic_response == 0, 1, 0)
+model_data$pathologic_response <- factor(model_data$pathologic_response, levels = c(1, 0), labels = c("pCR", "RD"))
 
 control <- caret::trainControl(method = "repeatedcv", # uses repeated cross-validation with GSE25055 training set (model_data)
                                number = 5, # number of folds 

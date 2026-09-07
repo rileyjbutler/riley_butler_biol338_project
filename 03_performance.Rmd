@@ -39,7 +39,11 @@ test_MEs <- readRDS(test_MEs_path)
 
 full_test_data <- data.frame(test_cf,test_MEs)
 
-full_test_data$pathologic_response <- ifelse(full_test_data$pathologic_response == 0, 1, 0)
+full_test_data$pathologic_response <- factor(
+  full_test_data$pathologic_response,
+  levels = c(1, 0),
+  labels = c("pCR", "RD")
+)
 ```
 
 

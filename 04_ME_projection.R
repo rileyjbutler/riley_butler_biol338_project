@@ -65,6 +65,10 @@ for (module_color in module_names) {
   direction <- ifelse(sign_correlation < 0, -1, 1)
   module_train_pc1 <- module_pca$x[, 1] * direction
   
+  ME_scale_model <- lm(MEs[, ME_name] ~ train_PC1)
+  reconstructed_train_ME <- predict(ME_scale_model)
+  reconstruction_correlation <- cor(reconstructed_train_ME, MEs[, ME_name])
+  
   # get gene subset from test set
   test <- test_expression[, shared_genes, drop = FALSE]
   
@@ -72,7 +76,9 @@ for (module_color in module_names) {
   module_test_scaled <- scale(test, center = module_pca$center, scale =  module_pca$scale)
   
   # projection to give 1 value for each test sample
-  test_ME <- c(module_test_scaled %*% module_pca$rotation[, 1]) * direction
+  test_pc1 <- c(module_test_scaled %*% module_pca$rotation[, 1]) * direction
+  test_ME <- coef(ME_scale_model)[1] + coef(ME_scale_model)[2] * test_pc1
+  
   test_MEs[, ME_name] <- test_ME
   
   # quality control check for each module 
