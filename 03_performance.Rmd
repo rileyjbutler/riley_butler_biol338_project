@@ -19,7 +19,8 @@ if (!file.exists(model_path)) {
   system("Rscript 02_model_selection.R")
 }
 
-test_path <- "data/validation_wgcna_results.rds"
+test_path <- "data/validation_processed_data.rds"
+test_MEs_path <- "data/test_MEs"
 ```
 
 ```{r}
@@ -32,21 +33,15 @@ library(performance)
 ```{r}
 # load data
 data <- readRDS(model_path)
-test_data <- readRDS(test_path)
+all_test <- readRDS(test_path)
+test_cf <- all_test$phenotype
+test_MEs <- readRDS(test_MEs_path)
+
+full_test_data <- data.frame(test_cf,test_MEs)
+
+full_test_data$pathologic_response <- ifelse(full_test_data$pathologic_response == 0, 1, 0)
 ```
 
-```{r}
-# dropping predictors that are too related to the outcome (pathologic response)
-clinical_factors <- test_data$pheno
-clinical_factors2 <- clinical_factors |> select(-geo_accession, -drfs)
-eigengenes2 <- test_data$eigengenes
-
-# create dataframe
-test_data <- data.frame(clinical_factors2,eigengenes2)
-
-# swapping variables - maybe do this early on? 
-test_data$pathologic_response <- ifelse(test_data$pathologic_response == 0, 1, 0)
-```
 
 ```{r}
 # shows the average resampled estimates of performance for different lambda and alpha values
@@ -154,9 +149,11 @@ The plot shows that the model is well calibrated for predicted probability of 0.
 
 ```{r}
 
-predictions1 <- predict(elastic_model, newdata=test_data, type="prob")
+predictions1 <- predict(elastic_model, newdata=full_test_data, type="prob")
 head(predictions1)
 ```
+
+I think PCA projection was mathematically pointing in the correct direction, but it was on the raw PC1 scale;  predictive model expects the WGCNA eigengene scale.
 
 
 Maybe run diagnostics and performance checks on simple logistic regression model/s too? 

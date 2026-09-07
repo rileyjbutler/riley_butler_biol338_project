@@ -188,12 +188,15 @@ alltraits <- alltraits |> mutate(characteristics_ch1.13 = as.numeric(sub("drfs_e
 
 
 alltraits <- drop_na(alltraits)
-
+keep_ids <- alltraits$geo_accession
+expr_top <- expr_top[, keep_ids, drop=FALSE]
+alltraits <- alltraits[match(colnames(expr_top), alltraits$geo_accession), , drop=FALSE]
+stopifnot(identical(colnames(expr_top), alltraits$geo_accession))
 
 # construct R object with the processed data
 processed <- list(
   expression_raw=t(expr_top),
-  response=response,
+  response=alltraits$pathologic_response,
   phenotype=alltraits,
   genes=top_genes,
   metadata=pheno
@@ -220,6 +223,6 @@ good_samples <- gsg$allOK
 good_samples # TRUE if all samples are 'good'
 
 # checking that the samples are in the same order for expr_top and pheno
-same_samples <- identical(rownames(t(expr_top)), rownames(pheno))
-same_samples # TRUE if the samples are in the same order for expression table and phenotype table
+same_samples <- identical(rownames(t(expr_top)), alltraits$geo_accession)
 
+same_samples

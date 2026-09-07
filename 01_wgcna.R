@@ -1,33 +1,17 @@
 # This file is used to carry out a Weighted Gene Co-expression Networks Analysis using the processed data from 00_preprocessing
-validation = TRUE
 
 # load libraries 
 library("WGCNA")
 library(tidyverse)
 library(pheatmap)
 
-# set-up 
-if (!dir.exists("results")) {
-  dir.create("results", recursive = TRUE)
-}
-if (validation == FALSE) {
-  processed_path <- "data/processed_data.rds"
-  output_file <- file.path(data_dir, "wgcna_results.rds")
-  if (!file.exists(processed_path)) {
-    system("Rscript 00_preprocessing.R")
-  }
-} else if (validation == TRUE) {
-  processed_path <- "data/validation_processed_data.rds"
-  output_file <- file.path(data_dir, "validation_wgcna_results.rds")
-  if (!file.exists(processed_path)) {
-    system("Rscript 00_preprocessing.R")
-  }
-}
-
 data_dir <- "data" 
 if (!dir.exists(data_dir)) { 
   dir.create(data_dir, recursive=TRUE)
 }
+
+processed_path <- "data/processed_data.rds"
+output_file <- file.path(data_dir, "wgcna_results.rds")
 
 # retrieving processed data 
 processed <- readRDS(processed_path)
@@ -212,7 +196,8 @@ plot(thisEigenGene, thisPC1, col=c("red", "black")[as.factor(pheno$ER_status)])
 
 wgcna_results <- list(
   eigengenes=MEs2,
-  pheno=pheno
+  pheno=pheno,
+  ModuleColors=ModuleColors
 )
 
 saveRDS(wgcna_results, output_file)

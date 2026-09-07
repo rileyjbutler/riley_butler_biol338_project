@@ -26,7 +26,7 @@ data <- readRDS(wgcna_path)
 clinical_factors <- data$pheno
 
 # dropping predictors that are too related to the outcome (pathologic response)
-clinical_factors <- clinical_factors |> select(-geo_accession, -pathologic_response_rcb_class, -drfs, -indeterminate_ER_status)
+clinical_factors <- clinical_factors |> select(-geo_accession, -drfs, -grade, -erbb2_status, -indeterminate_ER_status)
 eigengenes <- data$eigengenes
 
 # create dataframe
@@ -66,9 +66,9 @@ elastic_model <- caret::train(pathologic_response ~ .,
 # LOGISTIC REGRESSION # 
 # first I will construct 3 general logistic regression models - 1 with only eigegenes, 1 with clinical factors and 1 combined model. 
 # I run some model diagnostics by checking that none of the predictors are co-linear (VIF >=10)
-logistic1 <- glm(pathologic_response ~ MEblack + MEblue + MEbrown + MEgreenyellow + MEmagenta + MEpink + MEred + MEsalmon + MEturquoise + MEyellow + ER_status + tumor_stage + grade + age + PR_status + nodal_status, data=model_data, family=binomial)
-logistic2 <- glm(pathologic_response ~ MEblack + MEblue + MEbrown + MEgreenyellow + MEmagenta + MEpink + MEred + MEsalmon + MEturquoise + MEyellow, data=model_data, family=binomial)
-logistic3 <- glm(pathologic_response ~ ER_status + tumor_stage + grade + age + PR_status + nodal_status, data=model_data, family=binomial)
+logistic1 <- glm(pathologic_response ~ MEblue + MEgreenyellow + MEtan + MEgreenyellow + MEblack + MEgreen + MEpink + MEsalmon + MEmagenta + MEred + MEpurple + MEturquoise + ER_status + tumor_stage  + age + PR_status + nodal_status, data=model_data, family=binomial)
+logistic2 <- glm(pathologic_response ~ MEblue + MEgreenyellow + MEtan + MEgreenyellow + MEblack + MEgreen + MEpink + MEsalmon + MEmagenta + MEred + MEpurple + MEturquoise, data=model_data, family=binomial)
+logistic3 <- glm(pathologic_response ~ ER_status + tumor_stage  + age + PR_status + nodal_status, data=model_data, family=binomial)
 
 summary(logistic1)
 summary(logistic2)
@@ -80,7 +80,7 @@ check_collinearity(logistic2)
 check_collinearity(logistic3)
 
 # using caret for model comparison 
-MEpredictors <- model_data |> select(-age, -ER_status, -PR_status, -ggi_class, -HER2_status, -tumor_stage, -nodal_status, -grade, -esr1_status, -erbb2_status, -set_class)
+MEpredictors <- model_data |> select(-age, -ER_status, -PR_status, -ggi_class, -HER2_status, -tumor_stage, -nodal_status, -esr1_status, -set_class)
 
 # construct logistic regression model with MEs
 set.seed(123)
@@ -92,7 +92,7 @@ ME_logistic_model <- caret::train(pathologic_response ~ .,
                               trControl = control)
 
 # construct logistic regression model with clinical factors
-CF_predictors <- model_data |> select(-MEblack, -MEblue, -MEbrown, -MEgreen, -MEgreenyellow, -MEmagenta, -MEpink, -MEpurple, -MEred, -MEsalmon, -MEtan, -MEturquoise, -MEyellow)
+CF_predictors <- model_data |> select(-MEblue, -MEgreenyellow, -MEtan, -MEgreenyellow, -MEblack, -MEgreen, -MEpink, -MEsalmon, -MEmagenta, -MEred, -MEpurple, -MEturquoise)
 
 set.seed(123)
 CF_logistic_model <- caret::train(pathologic_response ~ .,
