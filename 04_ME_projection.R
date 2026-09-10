@@ -1,43 +1,43 @@
 # load libraries 
 library(tidyverse)
 
-# set-up
-
+# script set-up
 data_dir <- "data" 
 if (!dir.exists(data_dir)) { 
   dir.create(data_dir, recursive=TRUE)
 }
 
 wgcna_path <- "data/wgcna_results.rds"
-testing_path <- "data/validation_processed_data.rds"
-output_file <- file.path(data_dir, "testing_MEs.rds")
-processed_path <- "data/processed_data.rds"
-results <- data.frame()
-
-
 
 if (!file.exists(wgcna_path)) {
   system("Rscript 01_wgcna.R")
 }
 
-
+testing_path <- "data/validation_processed_data.rds"
+output_file <- file.path(data_dir, "testing_MEs.rds")
+processed_path <- "data/processed_data.rds"
 output_file <- file.path(data_dir, "test_MEs")
 
+# variable set-up for the loop 
 processed_data <- readRDS(processed_path)
 training_data <- readRDS(wgcna_path)
 testing_data <- readRDS(testing_path)
 test_expression <- testing_data$expression_raw
 
 ModuleColors <- training_data$ModuleColors
-
 module_names <- setdiff(unique(ModuleColors), "grey")
+module_names <- module_names[
+  paste0("ME", module_names) %in% colnames(MEs)
+]
 
 test_MEs <- matrix(NA, nrow=nrow(test_expression), ncol=length(module_names))
 rownames(test_MEs) <- rownames(test_expression)
 colnames(test_MEs) <- paste0("ME", module_names)
-
+expression <- processed_data$expression_raw
+MEs <- training_data$eigengenes
 projection_summary <- data.frame()
-
+  
+# for each module in the list of modules
 for (module_color in module_names) {
   # finding the genes in the give module (i.e. per colour)
   module_genes <- colnames(expression)[ModuleColors == module_color]
@@ -65,7 +65,8 @@ for (module_color in module_names) {
   direction <- ifelse(sign_correlation < 0, -1, 1)
   module_train_pc1 <- module_pca$x[, 1] * direction
   
-  ME_scale_model <- lm(MEs[, ME_name] ~ train_PC1)
+  # 
+  ME_scale_model <- lm(MEs[, ME_name] ~ module_train_pc1)
   reconstructed_train_ME <- predict(ME_scale_model)
   reconstruction_correlation <- cor(reconstructed_train_ME, MEs[, ME_name])
   
@@ -99,3 +100,11 @@ for (module_color in module_names) {
 }
 
 saveRDS(test_MEs, output_file)
+
+# making a gene to module table for PantherDB 
+gene_module_table <- data.frame(gene = colnames(expression), module = ModuleColors) |> group_by(module) |> summarise(genes = paste(gene, collapse = ", "))
+
+# checking the df 
+head(gene_module_table)
+
+blue <- gene_module_table |> select(module)
