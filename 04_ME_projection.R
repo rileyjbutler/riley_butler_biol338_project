@@ -107,4 +107,5 @@ gene_module_table <- data.frame(gene = colnames(expression), module = ModuleColo
 # checking the df 
 head(gene_module_table)
 
-blue <- gene_module_table |> select(module)
+# change for different modules - blue module has highest correlation with clinical factors 
+blue <- gene_module_table |> filter(module == "blue")

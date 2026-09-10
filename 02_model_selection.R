@@ -1,7 +1,7 @@
 # This file is used to explore different model types for predicting pCR. 
 # The chosen model is the one with the best balance of specificity, sensitivity and AUC as well as the model that best aligns with the data contextually.
 
-# set-up 
+# script set-up 
 if (!dir.exists("results")) {
   dir.create("results", recursive = TRUE)
 }
@@ -24,16 +24,18 @@ library(pROC)
 data <- readRDS(wgcna_path)
 
 clinical_factors <- data$pheno
+eigengenes <- data$eigengenes
 
 # dropping predictors that are too related to the outcome (pathologic response)
 clinical_factors <- clinical_factors |> select(-geo_accession, -drfs, -grade, -erbb2_status, -indeterminate_ER_status)
-eigengenes <- data$eigengenes
 
 # create dataframe
 model_data <- data.frame(clinical_factors,eigengenes)
 
+# changing outcome to be factor
 model_data$pathologic_response <- factor(model_data$pathologic_response, levels = c(1, 0), labels = c("pCR", "RD"))
 
+# formatting for the model to be trained against 
 control <- caret::trainControl(method = "repeatedcv", # uses repeated cross-validation with GSE25055 training set (model_data)
                                number = 5, # number of folds 
                                repeats = 5, # number of repeated folds
@@ -42,8 +44,6 @@ control <- caret::trainControl(method = "repeatedcv", # uses repeated cross-vali
                                summaryFunction = twoClassSummary, # to compute performance metrics 
                                savePredictions = "final") # indicator of how much of the hold-out predictions for each resample should be saved 
 
-# changing outcome to be factor (pCR or RD)
-model_data$pathologic_response <- factor(model_data$pathologic_response, levels = c(1, 0), labels = c("pCR", "RD"))
 
 # ELASTIC NET LOGISTIC REGRESSION # 
 # using caret to choose parameters (alpha and lambda) and fit elastic net logistic regression model 
@@ -54,6 +54,7 @@ grid <- expand.grid(alpha = seq(0, 1, by = 0.1), lambda = 10^seq(-4, 0, length.o
 # constructing the elastic net logistic regression model
 set.seed(123)
 
+# running the elastic model 
 elastic_model <- caret::train(pathologic_response ~ .,
                       data = model_data,
                       method = "glmnet", # using elastic-net logistic regression 
@@ -64,14 +65,24 @@ elastic_model <- caret::train(pathologic_response ~ .,
 
 # LOGISTIC REGRESSION # 
 # first I will construct 3 general logistic regression models - 1 with only eigegenes, 1 with clinical factors and 1 combined model. 
-# I run some model diagnostics by checking that none of the predictors are co-linear (VIF >=10)
+# I run some model diagnostics by checking that none of the predictors are co-linear (VIF <=10)
+
+# full model
 logistic1 <- glm(pathologic_response ~ MEblue + MEgreenyellow + MEtan + MEgreenyellow + MEblack + MEgreen + MEpink + MEsalmon + MEmagenta + MEred + MEpurple + MEturquoise + ER_status + tumor_stage  + age + PR_status + nodal_status, data=model_data, family=binomial)
+
+# ME model
 logistic2 <- glm(pathologic_response ~ MEblue + MEgreenyellow + MEtan + MEgreenyellow + MEblack + MEgreen + MEpink + MEsalmon + MEmagenta + MEred + MEpurple + MEturquoise, data=model_data, family=binomial)
+
+# clinical factor model
 logistic3 <- glm(pathologic_response ~ ER_status + tumor_stage  + age + PR_status + nodal_status, data=model_data, family=binomial)
 
-summary(logistic1)
-summary(logistic2)
-summary(logistic3)
+# summary statistics 
+l1 <- summary(logistic1)
+l1
+l2 <- summary(logistic2)
+l2
+l3 <- summary(logistic3)
+l3
 
 # check collinearity shows no high collinearity (VIF >= 10)
 check_collinearity(logistic1)
@@ -94,6 +105,8 @@ ME_logistic_model <- caret::train(pathologic_response ~ .,
 CF_predictors <- model_data |> select(-MEblue, -MEgreenyellow, -MEtan, -MEgreenyellow, -MEblack, -MEgreen, -MEpink, -MEsalmon, -MEmagenta, -MEred, -MEpurple, -MEturquoise)
 
 set.seed(123)
+
+# running logistic regression model 
 CF_logistic_model <- caret::train(pathologic_response ~ .,
                                   data = CF_predictors,
                                   method = "glm", # using logistic regression 
@@ -103,6 +116,8 @@ CF_logistic_model <- caret::train(pathologic_response ~ .,
 
 # construct full logistic regression model 
 set.seed(123)
+
+# running full logistic regression model 
 full_logistic_model <- caret::train(pathologic_response ~ .,
                                   data = model_data,
                                   method = "glm", # using logistic regression 
@@ -114,7 +129,10 @@ full_logistic_model <- caret::train(pathologic_response ~ .,
 # The RBF Kernal SVM uses non-linear relationships to map the data into infinite dimensional space 
 # The tuning cost (C) defines the influence of a single training example 
 
+
 set.seed(123)
+
+# running SVM model with all predictors
 SVM_model <- caret::train(pathologic_response ~ .,
                                     data = model_data,
                                     method = "svmRadial", # using SVM
@@ -126,6 +144,8 @@ SVM_model <- caret::train(pathologic_response ~ .,
 # Random forest is an ensemble techique that builds multiple decision trees and merges their outputs to improve model accuracy and stability 
 
 set.seed(123)
+
+# running random forest with all predictors 
 random_forest_model <- caret::train(pathologic_response ~ .,
                           data = model_data,
                           method = "ranger", # using random forest 

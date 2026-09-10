@@ -26,7 +26,7 @@ sampleTree <- hclust(dist(expression), method="average")
 par(cex=0.6);
 par(mar=c(0,4,2,0))
 
-plot(sampleTree, main="sample clustering to detect outliers", sub="", xlab="", cex.lab=1.5, cex.axis=1.5, cex.main=2)
+plot(sampleTree, main="Sample Clustering to Detect Outliers", sub="", xlab="", cex.lab=1.5, cex.axis=1.5, cex.main=2)
 # there appears to be no clear outlier samples
 
 # choosing soft power threshold 
@@ -77,7 +77,7 @@ table(ModuleColors)
 plotDendroAndColors(geneTree, ModuleColors, "Module", 
                     dendroLabels=FALSE, hang=0.03, 
                     addGuide=TRUE, guideHange=0.05, 
-                    main="Gene dendrogram and module colors")
+                    main="Gene Dendrogram and Module Colours")
 
 # module eigengene identification 
 MElist <- moduleEigengenes(expression, colors=ModuleColors)
@@ -98,10 +98,10 @@ mergedMEs = merge$newMEs
 
 # plot merged vs unmerged modules for comparison 
 plotDendroAndColors(geneTree, cbind(ModuleColors, mergedColors), 
-                    c("Original Module", "Merged Module"),
+                    c("Original Modules", "Merged Modules"),
                     dendroLabels = FALSE, hang = 0.03,
                     addGuide = TRUE, guideHang = 0.05,
-                    main = "Gene dendrogram and module colors for original and merged modules")
+                    main = "Gene Dendrogram and Module Colors for Original and Merged Modules")
 
 # module-trait matching
 
@@ -111,16 +111,11 @@ expression2 <- expression[common, , drop=FALSE]
 datatraits <- pheno[match(common, pheno$geo_accession), , drop=FALSE]
 rownames(datatraits) <- datatraits$geo_accession
 
-#samples <- rownames(expression)
-#traitrows <- match(samples, pheno$geo_accession)
-#datatraits <- pheno[traitrows, -1]
-#rownames(pheno2) <- pheno[traitrows, 1]
-
 
 # matching with samples from metadata with MEs
-common <- intersect(rownames(mergedMEs), rownames(datatraits))
-MEs2 <- mergedMEs[common, , drop = FALSE]
-datatraits2 <- datatraits[common, , drop = FALSE]
+common2 <- intersect(rownames(mergedMEs), rownames(datatraits))
+MEs2 <- mergedMEs[common2, , drop = FALSE]
+datatraits2 <- datatraits[common2, , drop = FALSE]
 identical(rownames(MEs2), rownames(datatraits2))
 
 # calculating module-trait correlation
@@ -155,23 +150,22 @@ labeledHeatmap(Matrix = module_trait_corr,
 
 # exploration for module eigengenes 
 
-queryModuleColor <- "yellow" # using yellow module 
+queryModuleColor <- "blue" # using blue module 
 
+# get expression and traits data for only the selected module colour 
 queryModuleExpression <- expression[,which(ModuleColors==queryModuleColor)]
-
 queryModuleExpression2 <- queryModuleExpression[rownames(datatraits2), , drop = FALSE]
 
-# a heatmap of sample clustering for genes inside the yellow module based on their association with pCR (0 or 1)
+# a heatmap of sample clustering for genes inside the blue module based on their association with pCR (0 or 1)
 heatmap1 <- heatmap(as.matrix(queryModuleExpression2), RowSideColors=c("red", "black")[as.numeric(as.factor(datatraits2$pathologic_response))])
 
 # combining pathologic response and ER status
-
 annotation_row <- data.frame(Response = datatraits$pathologic_response, ER_status = factor(datatraits$ER_status, levels = factor(c(0, 1)), labels = c("ER-", "ER+")))
 
 rownames(annotation_row) <- rownames(datatraits)
 
-# heat map of the yellow module 
-pheatmap(queryModuleExpression, scale = "column", annotation_row = annotation_row, show_rownames = FALSE, main = "Yellow module")
+# heat map of the blue module 
+pheatmap(queryModuleExpression, scale = "column", annotation_row = annotation_row, show_rownames = FALSE, main = "Blue Module Gene Correlation with ER Status and Chemotherapy Response")
 
 # ER status is shown in red and blue, showing a distinct cluster for ER+ (red) and ER- (blue) in the yellow module 
 # pCR shown in green/white, showing no distinct clustering in the yellow module
@@ -185,19 +179,14 @@ summary(queryModulePCA)$importance[,2]
 biplot(queryModulePCA, cex=0.4)
 
 # find Eigengene 
-thisEigenGene <- MEs[,which(colnames(MEs)==paste0("ME", queryModuleColor))]
+Eigengene1 <- MEs[,which(colnames(MEs)==paste0("ME", queryModuleColor))]
 
 # find first principle component
-thisPC1 <- queryModulePCA$x[,1]
+PC1 <- queryModulePCA$x[,1]
 
 # plot - some separation of pCR/RD cases, lots more separation for ER status 
-plot(thisEigenGene, thisPC1, col=c("red", "black")[as.factor(pheno$pathologic_response)])
-plot(thisEigenGene, thisPC1, col=c("red", "black")[as.factor(pheno$ER_status)])
+plot(Eigengene1, PC1, col=c("red", "black")[as.factor(pheno$pathologic_response)])
+plot(Eigengene1, PC1, col=c("red", "black")[as.factor(pheno$ER_status)])
 
-wgcna_results <- list(
-  eigengenes=MEs2,
-  pheno=pheno,
-  ModuleColors=ModuleColors
-)
-
+wgcna_results <- list(eigengenes=MEs2, pheno=pheno, ModuleColors=ModuleColors)
 saveRDS(wgcna_results, output_file)

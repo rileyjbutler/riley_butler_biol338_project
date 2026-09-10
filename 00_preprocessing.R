@@ -2,7 +2,7 @@
 # The following script is adopted from hadiazarabad's repository 'Cancer-Drug-Response' from file 'prepare_gse25066.R' 
 # The input for WGCNA should have samples as rows and columns as genes with the cells showing the normalised expression values. 
 
-validation <- TRUE 
+validation <- FALSE 
 
 # load libraries 
 library(GEOquery)
