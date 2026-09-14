@@ -23,16 +23,11 @@ Open the src folder and run the files in order (00 through 04). To get the proce
 01_wgcna - runs a network analysis on the processed data using a chosen soft power threshold of 3. Conducts PCA on the blue module. 
 02_model_selection - constructs different models using the caret package to assess which model performs best on training data.
 03_ME_projection - projects the training module eigenvalues onto the processed validation data.
-
 04_performance - runs performance and diagnostic checks on the elastic net logistic regression model as well as predicts pCR/RD probabilities for the validation set.
 
-'results' folder
+'results' folder contains .png files of the figures constructed throughout the pipeline
 
-Contains .png files of the figures constructed throughout the pipeline
-
-'data' folder 
-
-Contains R objects of the data throughout the pipeline 
+'data' folder contains R objects of the data throughout the pipeline 
 
 'genes.txt' contains the gene names of the genes in the blue module for enrichment analysis. These were pasted into PantherDB and annotated. 
 
