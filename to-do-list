@@ -67,3 +67,6 @@ Week 7
 make a read me file 
 
 pathway enrichment - with PantherDB?
+
+in readme: renv::restore() to use the same environment 
+

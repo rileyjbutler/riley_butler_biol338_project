@@ -161,7 +161,48 @@ head(predictions1)
 predictions2 <- predict(elastic_model, newdata=model_data, type="prob")
 head(predictions2)
 ```
-Most samples have 0.15 to 0.20 probability of being pCR and 0.80 to 0.85 probability of being RD. This aligns with the proportions of the training set. 
+Most samples have 0.15 to 0.20 probability of being pCR and 0.80 to 0.85 probability of being RD. This aligns with the proportions of the training set.
+
+```{r}
+# ROC curve with validation set 
+test_results <- data.frame(obs = full_test_data$pathologic_response, pCR_prob = predictions1$pCR)
+
+test_roc <- roc(response = test_results$obs, predictor = test_results$pCR_prob, levels = c("RD", "pCR"), direction = "<")
+
+test_roc
+auc(test_roc)
+ci.auc(test_roc)
+
+plot(test_roc, main = "ROC Curve with Test Set")
+```
+
+The ROC curve is over the null curve.
+
+```{r}
+# confusion matrix for test set
+test_results$pred <- factor(
+  ifelse(test_results$pCR_prob >= cutoff, "pCR", "RD"),
+  levels = c("pCR", "RD")
+)
+
+test_results$obs <- factor(
+  test_results$obs,
+  levels = c("pCR", "RD")
+)
+
+test_cm <- confusionMatrix(
+  test_results$pred,
+  test_results$obs,
+  positive = "pCR"
+)
+
+test_cm
+```
+The accuracy is 67%, the sensitivity on the test set is 62% and the specificity is 69% on the test set. 
+
+
+
+
 
 
 Maybe run diagnostics and performance checks on simple logistic regression model/s too?

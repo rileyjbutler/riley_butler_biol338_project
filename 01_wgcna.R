@@ -188,5 +188,5 @@ PC1 <- queryModulePCA$x[,1]
 plot(Eigengene1, PC1, col=c("red", "black")[as.factor(pheno$pathologic_response)])
 plot(Eigengene1, PC1, col=c("red", "black")[as.factor(pheno$ER_status)])
 
-wgcna_results <- list(eigengenes=MEs2, pheno=pheno, ModuleColors=ModuleColors)
+wgcna_results <- list(eigengenes=MEs2, pheno=pheno, ModuleColors=mergedColors)
 saveRDS(wgcna_results, output_file)

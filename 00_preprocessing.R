@@ -2,7 +2,7 @@
 # The following script is adopted from hadiazarabad's repository 'Cancer-Drug-Response' from file 'prepare_gse25066.R' 
 # The input for WGCNA should have samples as rows and columns as genes with the cells showing the normalised expression values. 
 
-validation <- FALSE 
+validation <- TRUE 
 
 # load libraries 
 library(GEOquery)
@@ -178,8 +178,8 @@ alltraits <- alltraits |> mutate(characteristics_ch1.7 = case_when(characteristi
                                                                    characteristics_ch1.7 == "clinical_nodal_status: N3" ~ 3, 
                                                                    )) |> rename(nodal_status = characteristics_ch1.7) 
 # pCR
-alltraits <- alltraits |> mutate(characteristics_ch1.10 = case_when(characteristics_ch1.10 == "pathologic_response_pcr_rd: RD" ~ 1,
-                                                                    characteristics_ch1.10 == "pathologic_response_pcr_rd: pCR" ~ 0)) |> rename(pathologic_response = characteristics_ch1.10)
+alltraits <- alltraits |> mutate(characteristics_ch1.10 = case_when(characteristics_ch1.10 == "pathologic_response_pcr_rd: RD" ~ 0,
+                                                                    characteristics_ch1.10 == "pathologic_response_pcr_rd: pCR" ~ 1)) |> rename(pathologic_response = characteristics_ch1.10)
 # drfs 
 alltraits <- alltraits |> mutate(characteristics_ch1.13 = as.numeric(sub("drfs_even_time_years:\\s*", "", characteristics_ch1.13))) |> rename(drfs = characteristics_ch1.13)
 
