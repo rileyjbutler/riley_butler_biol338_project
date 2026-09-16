@@ -64,9 +64,32 @@ and also the processed data from the test set. Then, I will save the results as 
 
 Week 7
 
-make a read me file 
+D make a read me file 
 
-pathway enrichment - with PantherDB?
+D pathway enrichment - with PantherDB?
 
-in readme: renv::restore() to use the same environment 
+D in readme: renv::restore() to use the same environment 
+
+-----------------------------------------------------------------------------------
+
+Week 8 
+
+D make pipeline a bit better by running previous file if needed
+
+make sure each file works with swept environment
+
+make sure environment works on different computer (UC computer)
+
+deal with NA in 00
+
+plan report 
+
+make an analysis script? or a script with lots of figures? 
+
+test models on different seed
+
+
+
+
+
 

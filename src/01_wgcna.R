@@ -6,12 +6,15 @@ library(tidyverse)
 library(pheatmap)
 
 data_dir <- "data" 
-if (!dir.exists(data_dir)) { 
-  dir.create(data_dir, recursive=TRUE)
-}
-
 processed_path <- "data/processed_data.rds"
 output_file <- file.path(data_dir, "wgcna_results.rds")
+
+if (file.exists(wgcna_path)) {
+  system("Rscript src/00_preprocessing.R TRUE")
+  print("Processing Data")
+} else { 
+  print("Processed Data Found")
+}
 
 # retrieving processed data 
 processed <- readRDS(processed_path)

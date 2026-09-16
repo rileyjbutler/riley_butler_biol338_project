@@ -2,16 +2,16 @@
 # The chosen model is the one with the best balance of specificity, sensitivity and AUC as well as the model that best aligns with the data contextually.
 
 # script set-up 
-if (!dir.exists("results")) {
-  dir.create("results", recursive = TRUE)
-}
-
 wgcna_path <- "data/wgcna_results.rds"
-if (!file.exists(wgcna_path)) {
-  system("Rscript 01_wgcna.R")
-}
-
+data_dir <- "data" 
 output_file <- file.path(data_dir, "models.rds")
+
+if (!file.exists(wgcna_path)) {
+  system("Rscript src/01_wgcna.R")
+  print("Running WGCNA")
+} else { 
+  print("WGCNA Results Found")
+}
 
 # load libraries 
 library(tidyverse)

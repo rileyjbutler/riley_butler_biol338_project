@@ -2,7 +2,9 @@
 # The following script is adopted from hadiazarabad's repository 'Cancer-Drug-Response' from file 'prepare_gse25066.R' 
 # The input for WGCNA should have samples as rows and columns as genes with the cells showing the normalised expression values. 
 
-validation <- TRUE 
+args <- commandArgs(trailingOnly = TRUE)
+validation <- as.logical(args[1])
+cat("validation =", validation, "\n")
 
 # load libraries 
 library(GEOquery)
@@ -14,6 +16,10 @@ library("WGCNA")
 data_dir <- "data" 
 if (!dir.exists(data_dir)) { 
   dir.create(data_dir, recursive=TRUE)
+}
+
+if (!dir.exists("results")) {
+  dir.create("results", recursive = TRUE)
 }
 
 if (validation == FALSE) {

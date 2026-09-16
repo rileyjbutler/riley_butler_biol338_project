@@ -15,12 +15,32 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 model_path <- "data/models.rds"
-if (!file.exists(model_path)) {
-  system("Rscript 02_model_selection.R")
-}
-
 test_path <- "data/validation_processed_data.rds"
 test_MEs_path <- "data/test_MEs"
+processed_path <- "data/processed_data.rds"
+
+if (!file.exists(model_path)) {
+  system("Rscript src/02_model_selection.R")
+  print("Constructing Models")
+} else { 
+  print("Models Found")
+}
+
+if (file.exists(wgcna_path)) {
+  system("Rscript src/00_preprocessing.R FALSE")
+  print("Processing Data")
+} else { 
+  print("Processed Data Found")
+}
+
+if (!file.exists(test_MEs_path)) {
+  system("Rscript src/03_ME_projection.R")
+  print("Projecting Test Data")
+} else { 
+  print("Test MEs Found")
+}
+
+
 ```
 
 ```{r}
@@ -199,10 +219,6 @@ test_cm <- confusionMatrix(
 test_cm
 ```
 The accuracy is 67%, the sensitivity on the test set is 62% and the specificity is 69% on the test set. 
-
-
-
-
 
 
 Maybe run diagnostics and performance checks on simple logistic regression model/s too?
