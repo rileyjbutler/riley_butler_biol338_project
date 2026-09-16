@@ -3,20 +3,18 @@ library(tidyverse)
 
 # script set-up
 data_dir <- "data" 
-if (!dir.exists(data_dir)) { 
-  dir.create(data_dir, recursive=TRUE)
-}
-
 wgcna_path <- "data/wgcna_results.rds"
+testing_path <- "data/validation_processed_data.rds"
+processed_path <- "data/processed_data.rds"
+output_file <- file.path(data_dir, "testing_MEs.rds")
 
 if (!file.exists(wgcna_path)) {
-  system("Rscript 01_wgcna.R")
+  system("Rscript src/01_wgcna.R")
+  print("Running WGCNA")
+} else { 
+  print("WGCNA Results Found")
 }
 
-testing_path <- "data/validation_processed_data.rds"
-output_file <- file.path(data_dir, "testing_MEs.rds")
-processed_path <- "data/processed_data.rds"
-output_file <- file.path(data_dir, "test_MEs")
 
 # variable set-up for the loop 
 processed_data <- readRDS(processed_path)
