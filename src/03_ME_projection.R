@@ -60,6 +60,8 @@ for (module_color in module_names) {
   sign_correlation <- cor(
     module_pca$x[, 1], MEs[, ME_name])
   
+  stopifnot(identical(colnames(module_training), colnames(test)))
+  
   # change the direction so that correlation = 1
   direction <- ifelse(sign_correlation < 0, -1, 1)
   module_train_pc1 <- module_pca$x[, 1] * direction
@@ -98,9 +100,10 @@ for (module_color in module_names) {
 
 }
 
-# these looks good - high gene retention and correlation between training and test set
-
+# save results 
 saveRDS(test_MEs, output_file)
+
+write.csv(projection_summary, "results/ME_projection_QC.csv", row.names = FALSE)
 
 # making a gene to module table for PantherDB 
 gene_module_table <- data.frame(gene = colnames(expression), module = ModuleColors) |> group_by(module) |> summarise(genes = paste(gene, collapse = ", "))

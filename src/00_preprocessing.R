@@ -78,13 +78,20 @@ expr <- expr[, keep_samples]
 response <- response[keep_samples]
 pheno <- pheno[keep_samples, , drop=FALSE]
 
-# find gene variances and keep 10000 of the genes with highest variance
-variances <- apply(expr, 1, var)
-variances <- variances[!is.na(variances)]
+# find gene variances and keep 10000 of the genes with highest variance (for training set)
 
-n_top_genes <- min(10000, length(variances))
-top_genes <- names(sort(variances, decreasing=TRUE))[seq_len(n_top_genes)]
-expr_top <- expr[top_genes, ]
+if (!validation) { 
+  variances <- apply(expr, 1, var)
+  variances <- variances[!is.na(variances)]
+  
+  n_top_genes <- min(10000, length(variances))
+  top_genes <- names(sort(variances, decreasing=TRUE))[seq_len(n_top_genes)]
+  expr_top <- expr[top_genes, ]
+} else {
+  expr_top <- expr 
+  top_genes <- rownames(expr_top)
+}
+
 
 # filtering for only useful variables 
 alltraits <- pheno
@@ -224,7 +231,7 @@ plotDensities(
 )
 
 # checking for missing entries, entries with weights below a threshold and zero-variance genes
-gsg <- goodSamplesGenes(expr_top, verbose=3) 
+gsg <- goodSamplesGenes(t(expr_top), verbose=3) 
 good_samples <- gsg$allOK  
 good_samples # TRUE if all samples are 'good'
 

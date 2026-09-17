@@ -9,8 +9,8 @@ data_dir <- "data"
 processed_path <- "data/processed_data.rds"
 output_file <- file.path(data_dir, "wgcna_results.rds")
 
-if (file.exists(wgcna_path)) {
-  system("Rscript src/00_preprocessing.R TRUE")
+if (file.exists(processed_path)) {
+  system("Rscript src/00_preprocessing.R FALSE")
   print("Processing Data")
 } else { 
   print("Processed Data Found")
@@ -33,7 +33,7 @@ plot(sampleTree, main="Sample Clustering to Detect Outliers", sub="", xlab="", c
 # there appears to be no clear outlier samples
 
 # choosing soft power threshold 
-spt <- pickSoftThreshold(expression)
+spt <- pickSoftThreshold(expression, networkType="signed")
 
 # plotting soft power thresholds
 par(mar=c(1,1,1,1))
@@ -56,10 +56,10 @@ text(spt$fitIndices[,1], spt$fitIndices[,5], labels=spt$fitIndices[,1], col="red
 SoftPower <- 3
 
 # construct adjacency matrix
-adjacency <- adjacency(expression, power=SoftPower)
+adjacency <- adjacency(expression, power=SoftPower, type="signed")
 
 # calculate TOM dissimilarity
-TOM <- TOMsimilarity(adjacency)
+TOM <- TOMsimilarity(adjacency, TOMType="signed")
 TOM_dis <- 1-TOM
 
 # plot gene tree
@@ -156,8 +156,8 @@ labeledHeatmap(Matrix = module_trait_corr,
 queryModuleColor <- "blue" # using blue module 
 
 # get expression and traits data for only the selected module colour 
-queryModuleExpression <- expression[,which(ModuleColors==queryModuleColor)]
-queryModuleExpression2 <- queryModuleExpression[rownames(datatraits2), , drop = FALSE]
+queryModuleExpression <- expression[, mergedColors == queryModuleColor]
+queryModuleExpression2 <- queryModuleExpression[rownames(datatraits2), , drop = FALSE] ## ??? 
 
 # a heatmap of sample clustering for genes inside the blue module based on their association with pCR (0 or 1)
 heatmap1 <- heatmap(as.matrix(queryModuleExpression2), RowSideColors=c("red", "black")[as.numeric(as.factor(datatraits2$pathologic_response))])
@@ -176,7 +176,7 @@ pheatmap(queryModuleExpression, scale = "column", annotation_row = annotation_ro
 # view as PCA 
 queryModulePCA<-prcomp(queryModuleExpression,scale=TRUE,center=TRUE)
 
-summary(queryModulePCA)$importance[,2]
+summary(queryModulePCA)$importance[,1]
 
 # plot - seems to have roughly equal split in direction across PC1 and PC2
 biplot(queryModulePCA, cex=0.4)
