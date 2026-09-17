@@ -5,12 +5,16 @@ date: "2026-08-30"
 output: html_document
 ---
 
-This file is used to test the chosen model performance by running diagnostic tests, performance checks and predictions using the test set. 
+This file is used to test the  model performance by running diagnostic tests, performance checks and predictions using the test set. 
 
 The chosen model is the elastic net logistic regression model. This model was chosen because...
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+
+knitr::opts_knit$set(
+  root.dir = normalizePath("..")
+)
 ```
 
 ```{r}
@@ -47,7 +51,7 @@ all_test <- readRDS(test_path)
 test_cf <- all_test$phenotype
 test_MEs <- readRDS(test_MEs_path)
 
-stopifnot(identical(test_cf$geo_accession, rownmaes(test_MEs)))
+stopifnot(identical(test_cf$geo_accession, rownames(test_MEs)))
 
 full_test_data <- data.frame(test_cf,test_MEs)
 
@@ -60,14 +64,50 @@ full_test_data$pathologic_response <- factor(
 
 
 ```{r}
-# shows the average resampled estimates of performance for different lambda and alpha values
-elastic_model <- data$elastic_model 
 model_data <- data$model_data
+
+elastic_model <- data$elastic_model 
+
+ME_logistic_model <- data$ME_logistic_model
+
+CF_logistic_model <- data$CF_logistic_model
+
+full_logistic_model <- data$full_logistic_model
+
+SVM_model <- data$SVM_model
+
+RF_model <- data$random_forest_model
+
 ```
 
+What Model Predicts Chemotherapy Reponse Best? 
+```{r}
+# comparing models using AUC, Specificity and Sensitivity 
+results <- resamples(list(glmnet = elastic_model, MElogistic = ME_logistic_model, CFlogistic = CF_logistic_model, fullLogistic = full_logistic_model, SVM_model=SVM_model, randomForest = RF_model))
+summary(results)
+box_whisker <- bwplot(results)
+
+box_whisker
+
+saveRDS(box_whisker, "results/box_wisker.rds")
+```
+
+Do MEs Improve Model Performance? 
+```{r}
+ME_comparison <- resamples(list(Clinical = CF_logistic_model, ME = ME_logistic_model, Full = full_logistic_model))
+
+summary(ME_comparison)
+
+bwplot(ME_comparison, metric = "ROC")
+
+plot(varImp(full_logistic_model))
+```
+
+
+Elastic Net Logistic Regression Diagnostics
 ```{r}
 # shows model performance (ROC-AUC) for different alpha and lambda values
-ggplot(elastic_model$finalModel, xvar="lambda")
+ggplot(elastic_model, xvar="lambda")
 ```
 
 CHANGE??? 
@@ -237,11 +277,8 @@ test_cm <- confusionMatrix(
 
 test_cm
 ```
-The accuracy is 67%, the sensitivity on the test set is 62% and the specificity is 69% on the test set. 
+The accuracy of the test set is 67%, the sensitivity on the test set is 62% and the specificity is 69% on the test set. 
 
-
-Maybe run diagnostics and performance checks on simple logistic regression model/s too?
-And also test set? 
 
 
 
