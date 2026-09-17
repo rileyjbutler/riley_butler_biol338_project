@@ -1,0 +1,12 @@
+"module","training_genes","shared_genes","missing_genes","retained_percent","correlation_with_original_ME"
+"magenta",575,575,0,100,1
+"purple",302,302,0,100,1
+"blue",1433,1433,0,100,1
+"brown",1663,1663,0,100,1
+"black",742,742,0,100,1
+"yellow",1056,1056,0,100,1
+"green",699,699,0,100,1
+"salmon",112,112,0,100,0.999999999999999
+"midnightblue",61,61,0,100,1
+"turquoise",2711,2711,0,100,1
+"red",646,646,0,100,1

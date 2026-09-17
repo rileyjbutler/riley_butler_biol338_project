@@ -4,7 +4,7 @@ library(tidyverse)
 # script set-up
 data_dir <- "data" 
 wgcna_path <- "data/wgcna_results.rds"
-testing_path <- "data/validation_processed_data.rds"
+test_path <- "data/validation_processed_data.rds"
 processed_path <- "data/processed_data.rds"
 output_file <- file.path(data_dir, "testing_MEs.rds")
 
@@ -15,6 +15,9 @@ if (!file.exists(wgcna_path)) {
   print("WGCNA Results Found")
 }
 
+if (!file.exists(test_path)) {
+  system("Rscript src/00_preprocessing.R TRUE")
+}
 
 # variable set-up for the loop 
 processed_data <- readRDS(processed_path)
@@ -59,8 +62,6 @@ for (module_color in module_names) {
   # check that the correlation sign is correct (should be 1) by comparing to original WGCNA eigengene
   sign_correlation <- cor(
     module_pca$x[, 1], MEs[, ME_name])
-  
-  stopifnot(identical(colnames(module_training), colnames(test)))
   
   # change the direction so that correlation = 1
   direction <- ifelse(sign_correlation < 0, -1, 1)
@@ -111,6 +112,6 @@ gene_module_table <- data.frame(gene = colnames(expression), module = ModuleColo
 # checking the df 
 head(gene_module_table)
 
-# change for different modules - blue module has highest correlation with clinical factors 
-blue <- gene_module_table |> filter(module == "blue")
+# change for different modules - magenta module has highest correlation with clinical factors 
+magenta <- gene_module_table |> filter(module == "magenta") # genes only in the magent module
 
