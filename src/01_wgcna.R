@@ -9,7 +9,7 @@ data_dir <- "data"
 processed_path <- "data/processed_data.rds"
 output_file <- file.path(data_dir, "wgcna_results.rds")
 
-if (file.exists(processed_path)) {
+if (!file.exists(processed_path)) {
   system("Rscript src/00_preprocessing.R FALSE")
   print("Processing Data")
 } else { 
@@ -32,16 +32,17 @@ par(mar=c(0,4,2,0))
 plot(sampleTree, main="Sample Clustering to Detect Outliers", sub="", xlab="", cex.lab=1.5, cex.axis=1.5, cex.main=2)
 # there appears to be no clear outlier samples
 
-# choosing soft power threshold 
+# choosing soft power threshold - using signed network
 spt <- pickSoftThreshold(expression, networkType="signed")
 
 # plotting soft power thresholds
 par(mar=c(1,1,1,1))
-plot(spt$fitIndices[,1],spt$fitIndices[,2],
+spt_plot <- plot(spt$fitIndices[,1],spt$fitIndices[,2],
 xlab="Soft Threshold", ylab="Scale Free Topology Model Fit", type="n", 
 main=paste("Scale independece"))
 text(spt$fitIndices[,1], spt$fitIndices[,2], col="red")
 abline(h=0.80, col="red")
+
 
 # plotting mean connectivity
 par(mar=c(5,5,3,1))
@@ -51,9 +52,8 @@ plot(spt$fitIndices[,1], spt$fitIndices[,5],
 axis(side=1, at=spt$fitIndices[,1], labels=spt$fitIndices[,1])
 text(spt$fitIndices[,1], spt$fitIndices[,5], labels=spt$fitIndices[,1], col="red")
 
-# choose soft power = 3
-# CHANGE FOR VALIDATION SET (add if/else)
-SoftPower <- 3
+# choose soft power = 4
+SoftPower <- 4
 
 # construct adjacency matrix
 adjacency <- adjacency(expression, power=SoftPower, type="signed")
@@ -100,11 +100,13 @@ mergedColors <- merge$colors
 mergedMEs = merge$newMEs
 
 # plot merged vs unmerged modules for comparison 
-plotDendroAndColors(geneTree, cbind(ModuleColors, mergedColors), 
+dendrogram1 <- plotDendroAndColors(geneTree, cbind(ModuleColors, mergedColors), 
                     c("Original Modules", "Merged Modules"),
                     dendroLabels = FALSE, hang = 0.03,
                     addGuide = TRUE, guideHang = 0.05,
                     main = "Gene Dendrogram and Module Colors for Original and Merged Modules")
+
+saveRDS(dendrogram1, "results/dendrogram.rds")
 
 # module-trait matching
 
@@ -124,7 +126,7 @@ identical(rownames(MEs2), rownames(datatraits2))
 # calculating module-trait correlation
 
 nGenes <- ncol(expression2) # 10000
-nSamples <- nrow(expression2) # 306
+nSamples <- nrow(expression2) # 300
 
 traits_numeric <- datatraits2[, setdiff(names(datatraits2), "geo_accession")] # get rid of character variable
 module_trait_corr <- WGCNA::cor(MEs2, traits_numeric, use='p')
@@ -138,7 +140,7 @@ par(mar = c(6, 8.5, 3, 1))
 
 
 # display the correlation values within a heatmap plot
-labeledHeatmap(Matrix = module_trait_corr,
+heatmap1 <- labeledHeatmap(Matrix = module_trait_corr,
                xLabels = names(traits_numeric),
                yLabels = names(MEs2),
                ySymbols = names(MEs2),
@@ -150,26 +152,27 @@ labeledHeatmap(Matrix = module_trait_corr,
                zlim = c(-1,1),
                main = paste("Module-trait relationships"))
 
+saveRDS(dendrogram1, "results/heatmap.rds")
 
 # exploration for module eigengenes 
 
-queryModuleColor <- "blue" # using blue module 
+queryModuleColor <- "purple" # using purple  module 
 
 # get expression and traits data for only the selected module colour 
 queryModuleExpression <- expression[, mergedColors == queryModuleColor]
 queryModuleExpression2 <- queryModuleExpression[rownames(datatraits2), , drop = FALSE] ## ??? 
 
 # a heatmap of sample clustering for genes inside the blue module based on their association with pCR (0 or 1)
-heatmap1 <- heatmap(as.matrix(queryModuleExpression2), RowSideColors=c("red", "black")[as.numeric(as.factor(datatraits2$pathologic_response))])
-
+heatmap2 <- heatmap(as.matrix(queryModuleExpression2), RowSideColors=c("red", "black")[as.numeric(as.factor(datatraits2$pathologic_response))])
+saveRDS(heatmap2, "results/heatmap2.rds")
 # combining pathologic response and ER status
 annotation_row <- data.frame(Response = datatraits$pathologic_response, ER_status = factor(datatraits$ER_status, levels = factor(c(0, 1)), labels = c("ER-", "ER+")))
 
 rownames(annotation_row) <- rownames(datatraits)
 
 # heat map of the blue module 
-pheatmap(queryModuleExpression, scale = "column", annotation_row = annotation_row, show_rownames = FALSE, main = "Blue Module Gene Correlation with ER Status and Chemotherapy Response")
-
+heatmap3 <- pheatmap(queryModuleExpression, scale = "column", annotation_row = annotation_row, show_rownames = FALSE, main = "Module Gene Correlation with ER Status and Chemotherapy Response")
+saveRDS(heatmap3, "results/heatmap3.rds")
 # ER status is shown in red and blue, showing a distinct cluster for ER+ (red) and ER- (blue) in the yellow module 
 # pCR shown in green/white, showing no distinct clustering in the yellow module
 

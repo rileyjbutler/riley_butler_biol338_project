@@ -3,7 +3,17 @@
 # The input for WGCNA should have samples as rows and columns as genes with the cells showing the normalised expression values. 
 
 args <- commandArgs(trailingOnly = TRUE)
-validation <- as.logical(args[1])
+
+if (length(args) == 0) {
+  validation <- FALSE
+} else {
+  validation <- as.logical(args[1])
+  
+  if (is.na(validation)) {
+    stop("validation must be TRUE or FALSE")
+  }
+}
+
 cat("validation =", validation, "\n")
 
 # load libraries 
@@ -11,9 +21,11 @@ library(GEOquery)
 library(limma)
 library(dplyr)
 library("WGCNA")
+library(tidyverse)
 
 # environment set-up - make data directory and output file path
 data_dir <- "data" 
+
 if (!dir.exists(data_dir)) { 
   dir.create(data_dir, recursive=TRUE)
 }
@@ -29,7 +41,6 @@ if (validation == FALSE) {
 }
 
 # retrieve data
-
 if (validation == TRUE) {
   gse_num <- "GSE25065"
 } else if (validation == FALSE) {
@@ -200,7 +211,7 @@ alltraits <- alltraits |> mutate(characteristics_ch1.13 = as.numeric(sub("drfs_e
 } 
 
 
-alltraits <- drop_na(alltraits)
+alltraits <- alltraits |> drop_na(geo_accession, pathologic_response, age, ER_status, PR_status, tumor_stage, nodal_status)
 keep_ids <- alltraits$geo_accession
 expr_top <- expr_top[, keep_ids, drop=FALSE]
 alltraits <- alltraits[match(colnames(expr_top), alltraits$geo_accession), , drop=FALSE]

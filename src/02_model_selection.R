@@ -19,6 +19,7 @@ library(performance)
 library(glmnet)
 library(caret)
 library(pROC)
+library(car)
 
 # load data
 data <- readRDS(wgcna_path)
@@ -30,7 +31,7 @@ eigengenes <- data$eigengenes
 stopifnot(identical(clinical_factors$geo_accession, rownames(eigengenes)))
 
 # dropping predictors that are too related to the outcome (pathologic response)
-clinical_factors <- clinical_factors |> select(-geo_accession, -drfs, -grade, -erbb2_status, -indeterminate_ER_status)
+clinical_factors <- clinical_factors |> select(-geo_accession, -drfs, -grade, -erbb2_status, -indeterminate_ER_status, -HER2_status)
 
 # create dataframe
 model_data <- data.frame(clinical_factors,eigengenes)
@@ -70,66 +71,46 @@ elastic_model <- caret::train(pathologic_response ~ .,
                       metric = "ROC", # use ROC as performance measure 
                       trControl = control) # use information from the control 
 
+elastic_net <- elastic_model$finalModel
+
+# lambda and alpha for best tune
+elastic_net$tuneValue
+
 # LOGISTIC REGRESSION # 
 # first I will construct 3 general logistic regression models - 1 with only eigegenes, 1 with clinical factors and 1 combined model. 
 # I run some model diagnostics by checking that none of the predictors are co-linear (VIF <=10)
 
-# full model
-logistic1 <- glm(pathologic_response ~ MEblue + MEtan + MEgreenyellow + MEblack + MEgreen + MEpink + MEsalmon + MEmagenta + MEred + MEpurple + MEturquoise + ER_status + tumor_stage  + age + PR_status + nodal_status, data=model_data, family=binomial)
+# make predictors for ME only model
+ME_names <- grep("^ME", names(model_data), value = TRUE)
+MEpredictors <- model_data |> select(pathologic_response, all_of(ME_names))
 
 # ME model
-logistic2 <- glm(pathologic_response ~ MEblue + MEtan + MEgreenyellow + MEblack + MEgreen + MEpink + MEsalmon + MEmagenta + MEred + MEpurple + MEturquoise, data=model_data, family=binomial)
+ME_logistic_model <- caret::train(pathologic_response ~ ., data = MEpredictors, method = "glm", family = binomial, metric = "ROC", trControl = control)
+ME_lm <- ME_logistic_model$finalModel
+
+# full  model
+full_logistic <- caret::train(pathologic_response ~ ., data = model_data, method = "glm", family = binomial, metric = "ROC", trControl = control)
+full_lm <- full_logistic$finalModel
 
 # clinical factor model
-logistic3 <- glm(pathologic_response ~ ER_status + tumor_stage  + age + PR_status + nodal_status, data=model_data, family=binomial)
+cf_logistic <- caret::train(pathologic_response ~ ER_status + tumor_stage  + age + PR_status + nodal_status, data = model_data, method = "glm", family = binomial, metric = "ROC", trControl = control)
+cf_lm <- full_logistic$finalModel
 
 # summary statistics 
-l1 <- summary(logistic1)
-l1
-l2 <- summary(logistic2)
-l2
-l3 <- summary(logistic3)
-l3
+summary(ME_logistic_model)
+summary(full_logistic)
+summary(cf_logistic)
 
-# check collinearity shows no high collinearity (VIF >= 10)
-check_collinearity(logistic1)
-check_collinearity(logistic2)
-check_collinearity(logistic3)
+# checking collinearity, high collinearity  at VIF >= 10
+full_vif <- vif(full_lm)
+full_vif
 
-# using caret for model comparison 
-MEpredictors <- model_data |> select(-age, -ER_status, -PR_status, -ggi_class, -HER2_status, -tumor_stage, -nodal_status, -esr1_status, -set_class)
+ME_vif <- vif(ME_lm)
+ME_vif 
 
-# construct logistic regression model with MEs
-set.seed(123)
-ME_logistic_model <- caret::train(pathologic_response ~ .,
-                              data = MEpredictors,
-                              method = "glm", # using logistic regression 
-                              family=binomial,
-                              metric = "ROC", # use ROC as performance measure 
-                              trControl = control)
+cf_vif <- vif(cf_lm)
+cf_vif
 
-# construct logistic regression model with clinical factors
-CF_predictors <- model_data |> select(-MEblue, -MEtan, -MEgreenyellow, -MEblack, -MEgreen, -MEpink, -MEsalmon, -MEmagenta, -MEred, -MEpurple, -MEturquoise)
-
-# running logistic regression model 
-set.seed(123)
-CF_logistic_model <- caret::train(pathologic_response ~ .,
-                                  data = CF_predictors,
-                                  method = "glm", # using logistic regression 
-                                  family=binomial,
-                                  metric = "ROC", # use ROC as performance measure 
-                                  trControl = control)
-
-# construct full logistic regression model 
-
-# running full logistic regression model 
-set.seed(123)
-full_logistic_model <- caret::train(pathologic_response ~ .,
-                                  data = model_data,
-                                  method = "glm", # using logistic regression 
-                                  family=binomial,
-                                  metric = "ROC", # use ROC as performance measure
-                                  trControl = control)
 # SUPPORT VECTOR MACHINE (SVM) # 
 # SVM finds the optimal hyperplan to separate data into different classes (pCR or RD). 
 # The RBF Kernal SVM uses non-linear relationships to map the data into infinite dimensional space 
@@ -157,20 +138,28 @@ random_forest_model <- caret::train(pathologic_response ~ .,
                           importance = "permutation")
 
 # to observe the importance of each predictor - how much the model's predictive performance depends on that variable.
-importance <- varImp(random_forest_model, scale=FALSE)
-plot(importance)
+RF_importance <- varImp(random_forest_model, scale=FALSE)
+plot(RF_importance)
+
+EN_importance <- varImp(elastic_model, scale=FALSE)
+plot(EN_importance)
+
+SVM_importance <- varImp(SVM_model, scale=FALSE)
+plot(SVM_importance)
 
 # comparing models using AUC, Specificity and Sensitivity 
-results <- resamples(list(glmnet = elastic_model, MElogistic = ME_logistic_model, CFlogistic = CF_logistic_model, fullLogistic = full_logistic_model, SVM_model=SVM_model, randomForest = random_forest_model))
+results <- resamples(list(glmnet = elastic_model, MElogistic = ME_logistic_model, CFlogistic = cf_logistic, fullLogistic = full_logistic, SVM_model=SVM_model, randomForest = random_forest_model))
 summary(results)
-bwplot(results)
+box_whisker <- bwplot(results)
+
+saveRDS(box_whisker, "results/box_wisker.rds")
 
 # construct R object with the models
 models <- list(
   elastic_model=elastic_model,
   ME_logistic_model=ME_logistic_model, 
-  CF_logistic_model=CF_logistic_model, 
-  full_logistic_model=full_logistic_model,
+  CF_logistic_model=cf_logistic, 
+  full_logistic_model=full_logistic,
   SVM_model=SVM_model, 
   random_forest_model=random_forest_model,
   model_data = model_data
