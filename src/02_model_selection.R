@@ -97,9 +97,9 @@ cf_logistic <- caret::train(pathologic_response ~ ER_status + tumor_stage  + age
 cf_lm <- full_logistic$finalModel
 
 # summary statistics 
-summary(ME_logistic_model)
-summary(full_logistic)
-summary(cf_logistic)
+summary(ME_logistic_model)  
+summary(full_logistic) 
+summary(cf_logistic)  
 
 # checking collinearity, high collinearity  at VIF >= 10
 full_vif <- vif(full_lm)
@@ -137,22 +137,6 @@ random_forest_model <- caret::train(pathologic_response ~ .,
                           trControl = control,
                           importance = "permutation")
 
-# to observe the importance of each predictor - how much the model's predictive performance depends on that variable.
-RF_importance <- varImp(random_forest_model, scale=FALSE)
-plot(RF_importance)
-
-EN_importance <- varImp(elastic_model, scale=FALSE)
-plot(EN_importance)
-
-SVM_importance <- varImp(SVM_model, scale=FALSE)
-plot(SVM_importance)
-
-# comparing models using AUC, Specificity and Sensitivity 
-results <- resamples(list(glmnet = elastic_model, MElogistic = ME_logistic_model, CFlogistic = cf_logistic, fullLogistic = full_logistic, SVM_model=SVM_model, randomForest = random_forest_model))
-summary(results)
-box_whisker <- bwplot(results)
-
-saveRDS(box_whisker, "results/box_wisker.rds")
 
 # construct R object with the models
 models <- list(

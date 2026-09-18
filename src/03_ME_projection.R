@@ -22,7 +22,7 @@ if (!file.exists(test_path)) {
 # variable set-up for the loop 
 processed_data <- readRDS(processed_path)
 training_data <- readRDS(wgcna_path)
-testing_data <- readRDS(testing_path)
+testing_data <- readRDS(test_path)
 test_expression <- testing_data$expression_raw
 MEs <- training_data$eigengenes
 
@@ -114,4 +114,12 @@ head(gene_module_table)
 
 # change for different modules - magenta module has highest correlation with clinical factors 
 magenta <- gene_module_table |> filter(module == "magenta") # genes only in the magent module
+
+
+write.table(magenta,
+  "misc/genes.txt",
+  sep = "\t",
+  row.names = FALSE,
+  quote = FALSE
+)
 
