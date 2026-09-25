@@ -121,7 +121,7 @@ bwplot(ME_comparison, metric = "ROC")
 plot(varImp(full_logistic_model))
 ```
 
-The results show that including module eigengenes don't significantly improve ROC, sensitivity or specificity (for the logistic regression models). However, predictor importance shows that some module eigengenes are more important than some clinical factors, indicating the importance of including genetic data through networks analysis for predicting chemotherapy response. These results could be compared to using differential abundance of individual genes to show whether conducting a networks analysis significantly improves models using genetic data.  
+The summary shows some improvement in sensitivity for models including module eigengenes and thus a coresponding decrease in specificity. In general, the results show that including module eigengenes don't significantly improve ROC, sensitivity or specificity (for the logistic regression models). However, predictor importance shows that some module eigengenes are more important than some clinical factors, indicating the importance of including genetic data through networks analysis for predicting chemotherapy response. These results could be compared to using differential abundance of individual genes to show whether conducting a networks analysis significantly improves models using genetic data.  
 
 ## Elastic Net Logistic Regression Diagnostics 
 
@@ -136,7 +136,7 @@ This plot shows the cross-validated ROC-AUC values across different combinations
 ```{r}
 elastic_model$bestTune
 ```
-The best tunning paramets are alpha = 0 and lambda = 1
+The best tunning parameters are alpha = 0 and lambda = 1
 
 ```{r}
 densityplot(elastic_model, pch = "*")

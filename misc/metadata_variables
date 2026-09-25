@@ -1,0 +1,31 @@
+This file gives definitions for each of the important variables in the metadata table 
+
+geo_accession: an identifier given to biological datasets in NCBI GEO repository. These are the sample names. 
+
+age: a continuous variable for the age of participants 
+
+ER_status: a binary variable for estrogen receptor status that describes whether cancer cells have proteins that bind to the hormone estrogen 
+
+PR_status: a binary variable for progesterone receptor status that describes whether cancer cells have protein recptors that use the hormone progesterone to grown 
+
+HER2_status: a binary variable for presence or absence of HER2 protein on the surface of cancer cells 
+
+indeterminate_ER_status: binary variable that shows whether or not the lab was unable to definitely determine whether a breast cancer sample is ER-positive or ER-negative (1 = positive, 0 = negative) 
+
+tumor_stage: ordinal variable that shows how large the cancer tumor is and how far it has grown or spread in the body (0 to 4)
+
+nodal_status: ordinal variable that shows whether cancer has spread to nearby lymph nodes and to what degree they have spread (0 to 3, none to small to moderate to large)
+
+grade: ordinal variable that describes how abnormal cancer cells and tissue look under a microscope (1 to 4, low grade to intermediate to high to indeterminate)
+
+pathologic_response: a binary variable for (0) residual disease where more than 10% remaining viable cancer cells (1) pCR or the complete absence of any residual viable cancer cells in the tissue 
+
+drfs: (distant relapse-free survival) a continuous variable that shows the length of time from diagnosis or primary surgery until a cancer returns in a distant part of the body (metastatis) or unitl death from any cause 
+
+esr1_status: binary variable that shows presence or absence of a mutation in the ESR1 gene, a gene that instructs cells to make estrogen receptors. 
+
+erbb2_status: binary variable that shows presence or absence of a mutation in the ERBB2 gene, a gene that makes HER2 protein. 
+
+set_class: (sensitivity to endocrine therapy class) a ordinal variable that estimates how sensitive the tumor may be to hormone blocking treatment (0 to 2, low sensitivity to intermediate sensitivity to high sensitivity)
+
+ggi_class: (genomic grade index class) a binary variable that classifies tumours according to their biological grade (i.e. activity of genes associated with cell proliferation)

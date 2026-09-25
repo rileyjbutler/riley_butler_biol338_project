@@ -76,17 +76,17 @@ Week 8
 
 D make pipeline a bit better by running previous file if needed
 
-make sure each file works with swept environment
+D make sure each file works with swept environment
 
 make sure environment works on different computer (UC computer)
 
-deal with NA in 00
+D deal with NA in 00
 
 plan report 
 
-make an analysis script? or a script with lots of figures? 
+make an analysis script? or a script with lots of figures? --
 
-test models on different seed?
+test models on different seed? -- 
 
 
 

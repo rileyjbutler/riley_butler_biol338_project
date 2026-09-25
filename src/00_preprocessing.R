@@ -19,9 +19,8 @@ cat("validation =", validation, "\n")
 # load libraries 
 library(GEOquery)
 library(limma)
-library(dplyr)
-library("WGCNA")
 library(tidyverse)
+library("WGCNA")
 
 # environment set-up - make data directory and output file path
 data_dir <- "data" 

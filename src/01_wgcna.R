@@ -160,7 +160,7 @@ queryModuleColor <- "purple" # using purple  module
 
 # get expression and traits data for only the selected module colour 
 queryModuleExpression <- expression[, mergedColors == queryModuleColor]
-queryModuleExpression2 <- queryModuleExpression[rownames(datatraits2), , drop = FALSE] ## ??? 
+queryModuleExpression2 <- queryModuleExpression[rownames(datatraits2), , drop = FALSE] # subset queryModuleExpression so that its in the same order as metadata samples
 
 # a heatmap of sample clustering for genes inside the blue module based on their association with pCR (0 or 1)
 heatmap2 <- heatmap(as.matrix(queryModuleExpression2), RowSideColors=c("red", "black")[as.numeric(as.factor(datatraits2$pathologic_response))])
