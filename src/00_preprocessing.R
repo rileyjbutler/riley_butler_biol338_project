@@ -230,8 +230,10 @@ saveRDS(processed, output_file)
 ### Data Quality Control Checks ###
 
 # checking distribution of data
-hist(expr, main = "Gene Expression Data", xlab = "Expression") # before removing low-variance 
-hist(expr_top, main = "Gene Expression Data", xlab = "Expression") # after removing low-variance
+hist(expr, main = "Gene Expression Data Before Processing", xlab = "Expression") # before removing low-variance 
+hist(expr_top, main = "Gene Expression Data After Processing", xlab = "Expression") # after removing low-variance
+
+# note, expression levels are log-transformed and relative and are thus unitless
 
 # densities across samples
 plotDensities(

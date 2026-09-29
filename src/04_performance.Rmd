@@ -97,13 +97,11 @@ The anova test shows that a significant p-value, thus we can reject the null and
 #### What Model Predicts Chemotherapy Reponse Best? 
 ```{r}
 # comparing models using AUC, Specificity and Sensitivity 
-results <- resamples(list(glmnet = elastic_model, MElogistic = ME_logistic_model, CFlogistic = CF_logistic_model, fullLogistic = full_logistic_model, SVM_model=SVM_model, randomForest = RF_model))
+results <- resamples(list(Elastic Net = elastic_model, MElogistic = ME_logistic_model, CFlogistic = CF_logistic_model, fullLogistic = full_logistic_model, SVM_model=SVM_model, randomForest = RF_model))
 summary(results)
 box_whisker <- bwplot(results)
 
 box_whisker
-
-saveRDS(box_whisker, "results/box_wisker.rds")
 ```
 
 The box and whisker plot shows that most metrics are not statistically significantly different across models. The median ROC across models ranges from a minimum of 0.68 for the SVM model and a maximum of 0.78 for the elastic net model. The sensitivity ranges from 0 for the SVM and elastic net model to 0.18 for the ME and full logistic models. The low sensitivity is in part due to the low number of pCR cases in the training set. The specificity ranges from 1 for the elastic net logistic regression model to 0.92 for the full logistic regression model. I chose to look at the elastic net logistic regression model as its construction best fits with the context of the data (i.e. chooses from lots of predictors with alpha and lambda values). The threshold for classification is adjusted from 0.5 using Youden's J Statistic to find a new threshold in order to improve the models sensitivity. 

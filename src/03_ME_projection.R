@@ -113,7 +113,7 @@ gene_module_table <- data.frame(gene = colnames(expression), module = ModuleColo
 head(gene_module_table)
 
 # change for different modules - magenta module has highest correlation with clinical factors 
-magenta <- gene_module_table |> filter(module == "magenta") # genes only in the magent module
+magenta <- gene_module_table |> filter(module == "black") # genes only in the X module
 
 
 write.table(magenta,

@@ -39,7 +39,7 @@ spt <- pickSoftThreshold(expression, networkType="signed")
 par(mar=c(1,1,1,1))
 spt_plot <- plot(spt$fitIndices[,1],spt$fitIndices[,2],
 xlab="Soft Threshold", ylab="Scale Free Topology Model Fit", type="n", 
-main=paste("Scale independece"))
+main=paste("Scale independence"))
 text(spt$fitIndices[,1], spt$fitIndices[,2], col="red")
 abline(h=0.80, col="red")
 
@@ -104,9 +104,7 @@ dendrogram1 <- plotDendroAndColors(geneTree, cbind(ModuleColors, mergedColors),
                     c("Original Modules", "Merged Modules"),
                     dendroLabels = FALSE, hang = 0.03,
                     addGuide = TRUE, guideHang = 0.05,
-                    main = "Gene Dendrogram and Module Colors for Original and Merged Modules")
-
-saveRDS(dendrogram1, "results/dendrogram.rds")
+                    main = "Gene Dendrogram and Module Colors")
 
 # module-trait matching
 
@@ -136,7 +134,7 @@ module_trait_pvalue <- corPvalueStudent(module_trait_corr, nSamples)
 textMatrix = paste(signif(module_trait_corr, 2), "\n(",
                    signif(module_trait_pvalue, 1), ")", sep = "");
 dim(textMatrix) = dim(module_trait_corr)
-par(mar = c(6, 8.5, 3, 1))
+par(mar = c(8, 8.5, 3, 1))
 
 
 # display the correlation values within a heatmap plot
@@ -152,11 +150,9 @@ heatmap1 <- labeledHeatmap(Matrix = module_trait_corr,
                zlim = c(-1,1),
                main = paste("Module-trait relationships"))
 
-saveRDS(dendrogram1, "results/heatmap.rds")
-
 # exploration for module eigengenes 
 
-queryModuleColor <- "purple" # using purple  module 
+queryModuleColor <- "magenta" # using X  module 
 
 # get expression and traits data for only the selected module colour 
 queryModuleExpression <- expression[, mergedColors == queryModuleColor]
@@ -164,15 +160,15 @@ queryModuleExpression2 <- queryModuleExpression[rownames(datatraits2), , drop = 
 
 # a heatmap of sample clustering for genes inside the blue module based on their association with pCR (0 or 1)
 heatmap2 <- heatmap(as.matrix(queryModuleExpression2), RowSideColors=c("red", "black")[as.numeric(as.factor(datatraits2$pathologic_response))])
-saveRDS(heatmap2, "results/heatmap2.rds")
+
 # combining pathologic response and ER status
 annotation_row <- data.frame(Response = datatraits$pathologic_response, ER_status = factor(datatraits$ER_status, levels = factor(c(0, 1)), labels = c("ER-", "ER+")))
 
 rownames(annotation_row) <- rownames(datatraits)
 
-# heat map of the blue module 
+# heat map of the X module 
 heatmap3 <- pheatmap(queryModuleExpression, scale = "column", annotation_row = annotation_row, show_rownames = FALSE, main = "Module Gene Correlation with ER Status and Chemotherapy Response")
-saveRDS(heatmap3, "results/heatmap3.rds")
+
 # ER status is shown in red and blue, showing a distinct cluster for ER+ (red) and ER- (blue) in the yellow module 
 # pCR shown in green/white, showing no distinct clustering in the yellow module
 
