@@ -97,7 +97,7 @@ The anova test shows that a significant p-value, thus we can reject the null and
 #### What Model Predicts Chemotherapy Reponse Best? 
 ```{r}
 # comparing models using AUC, Specificity and Sensitivity 
-results <- resamples(list(Elastic Net = elastic_model, MElogistic = ME_logistic_model, CFlogistic = CF_logistic_model, fullLogistic = full_logistic_model, SVM_model=SVM_model, randomForest = RF_model))
+results <- resamples(list(ElasticModel = elastic_model, MELogistic = ME_logistic_model, CFLogistic = CF_logistic_model, FullLogistic = full_logistic_model, SVMModel=SVM_model, RandomForestModel = RF_model))
 summary(results)
 box_whisker <- bwplot(results)
 
@@ -134,7 +134,7 @@ This plot shows the cross-validated ROC-AUC values across different combinations
 ```{r}
 elastic_model$bestTune
 ```
-The best tunning parameters are alpha = 0 and lambda = 1
+The best tuning parameters are alpha = 0 and lambda = 1
 
 ```{r}
 densityplot(elastic_model, pch = "*")
