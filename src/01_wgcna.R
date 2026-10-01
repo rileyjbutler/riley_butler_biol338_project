@@ -134,7 +134,7 @@ module_trait_pvalue <- corPvalueStudent(module_trait_corr, nSamples)
 textMatrix = paste(signif(module_trait_corr, 2), "\n(",
                    signif(module_trait_pvalue, 1), ")", sep = "");
 dim(textMatrix) = dim(module_trait_corr)
-par(mar = c(8, 8.5, 3, 1))
+par(mar = c(8, 10, 3, 1))
 
 
 # display the correlation values within a heatmap plot

@@ -14,6 +14,8 @@ if (length(args) == 0) {
   }
 }
 
+
+
 cat("validation =", validation, "\n")
 
 # load libraries 
@@ -108,11 +110,11 @@ alltraits <- pheno
 
 # renaming and cleaning variables 
 if (validation == FALSE) {
-  alltraits <- alltraits |> select(geo_accession, characteristics_ch1.2, characteristics_ch1.3, characteristics_ch1.4, characteristics_ch1.5, 
+  alltraits <- alltraits |> select(geo_accession, characteristics_ch1.2, characteristics_ch1.3, characteristics_ch1.4, 
                                    characteristics_ch1.6, characteristics_ch1.7, characteristics_ch1.8, characteristics_ch1.10, characteristics_ch1.11, 
                                   characteristics_ch1.14, characteristics_ch1.15, characteristics_ch1.16, characteristics_ch1.17, characteristics_ch1.19)
 } else if (validation == TRUE) {
-  alltraits <- alltraits |> select(geo_accession, characteristics_ch1.2, characteristics_ch1.3, characteristics_ch1.4, characteristics_ch1.5, 
+  alltraits <- alltraits |> select(geo_accession, characteristics_ch1.2, characteristics_ch1.3, characteristics_ch1.4, 
                                    characteristics_ch1.6, characteristics_ch1.7, characteristics_ch1.10, characteristics_ch1.13, 
                                    characteristics_ch1.15, characteristics_ch1.17, characteristics_ch1.19)
 }
@@ -128,10 +130,6 @@ alltraits <- alltraits |> mutate(characteristics_ch1.3 = case_when(characteristi
 alltraits <- alltraits |> mutate(characteristics_ch1.4 = case_when(characteristics_ch1.4 == "pr_status_ihc: P" ~ 1,
                                                                    characteristics_ch1.4 == "pr_status_ihc: N" ~ 0,
                                                                    characteristics_ch1.4 %in% c("pr_status_ihc: I", "pr_status_ihc: NA") ~ NA_real_)) |> rename(PR_status = characteristics_ch1.4)
-# HER2 status
-alltraits <- alltraits |> mutate(characteristics_ch1.5 = case_when(characteristics_ch1.5 == "her2_status: P" ~ 1,
-                                                                   characteristics_ch1.5 == "her2_status: N" ~ 0,
-                                                                   characteristics_ch1.5 %in% c("her2_status: I", "her2_status: NA") ~ NA_real_)) |> rename(HER2_status = characteristics_ch1.5)
 
 # set class
 alltraits <- alltraits |> mutate(characteristics_ch1.17 = case_when(characteristics_ch1.17 == "set_class: SET-High" ~ 2,
